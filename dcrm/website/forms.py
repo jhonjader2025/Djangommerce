@@ -4,13 +4,19 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
 
-from .models import Order
+from .models import Order, UserProfile
 
 
 from .models import Record
 
 
 class UserRegisterForm(UserCreationForm):
+    ROLE_CHOICES = [
+        ("usuario", "Usuario básico"),
+        ("vendedor", "Vendedor"),
+        ("admin", "Administrador"),
+    ]
+
     email = forms.EmailField(
         label="", widget=forms.EmailInput(attrs={"placeholder": "Correo electronico"})
     )
@@ -20,6 +26,12 @@ class UserRegisterForm(UserCreationForm):
     last_name = forms.CharField(
         label="", widget=forms.TextInput(attrs={"placeholder": "Apellido"})
     )
+    role = forms.ChoiceField(
+        label="",
+        choices=ROLE_CHOICES,
+        initial="usuario",
+        widget=forms.Select(attrs={"class": "form-control"}),
+    )
 
     class Meta:
         model = User
@@ -28,6 +40,7 @@ class UserRegisterForm(UserCreationForm):
             "email",
             "first_name",
             "last_name",
+            "role",
             "password1",
             "password2",
         ]
@@ -61,6 +74,22 @@ class UserRegisterForm(UserCreationForm):
         self.fields["password2"].help_text = (
             '<span class="form-text text-muted">Requerido. Debe coincidir con la contrasena anterior.</span>'
         )
+
+        self.fields["role"].widget.attrs["class"] = "form-control"
+        self.fields["role"].label = ""
+        self.fields["role"].help_text = (
+            '<span class="form-text text-muted">Elige el rol inicial del usuario.</span>'
+        )
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        role = self.cleaned_data.get("role", "usuario")
+        if commit:
+            user.save()
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.role = role
+            profile.save()
+        return user
 
 
 class RecordForm(forms.ModelForm):

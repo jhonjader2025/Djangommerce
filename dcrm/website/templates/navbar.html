@@ -71,10 +71,23 @@
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
         {% if user.is_authenticated %}
           <li class="nav-item">
+            <span class="nav-link nav-link-tech">
+              <span>Rol:</span> <strong>{{ user_role|default:user.profile.role|default:'usuario'|title }}</strong>
+            </span>
+          </li>
+          <li class="nav-item">
             <a class="nav-link nav-link-tech" href="{% url 'list_orders' %}">
               <span>Pedidos</span> 📦
             </a>
           </li>
+
+          {% if user_role == 'admin' or user_role == 'vendedor' %}
+          <li class="nav-item">
+            <a class="nav-link nav-link-tech" href="{% url 'create_order' %}">
+              <span>Nuevo Pedido</span> ➕
+            </a>
+          </li>
+          {% endif %}
 
           <li class="nav-item">
             <a class="nav-link nav-link-tech nav-link-danger-tech" href="{% url 'logout' %}">

@@ -45,11 +45,13 @@ Esta parte puedes dejarla para probar datos y funciona muy bien.
 {# Botón para volver al home (vista principal) #}
 <a href="{% url 'home' %}" class="btn btn-secondary">Back</a>
 
+{% if user_role == 'admin' or user_role == 'vendedor' %}
 {# Botón para eliminar el registro actual #}
 <a href="{% url 'delete_record' customer_record.id %}" class="btn btn-danger">Delete</a>
 
 {# Botón para actualizar el registro actual #}
 <a href="{% url 'update_record' customer_record.id %}" class="btn btn-secondary">Update Record</a>
+{% endif %}
 
 {% endblock %}
 

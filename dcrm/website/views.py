@@ -26,6 +26,25 @@ from .models import Order
 from .forms import OrderForm
 
 
+def get_user_role(user):
+    """Devuelve el rol del usuario para la lógica de negocio del CRM."""
+    if not getattr(user, "is_authenticated", False):
+        return "usuario"
+
+    profile = getattr(user, "profile", None)
+    if profile is not None:
+        role = getattr(profile, "role", None)
+        if role:
+            return role
+
+    return "usuario"
+
+
+def can_manage_records(role):
+    """Define qué roles pueden crear o modificar registros de clientes y pedidos."""
+    return role in {"admin", "vendedor"}
+
+
 def create_sample_records():
     if Record.objects.exists():
         return
@@ -162,7 +181,8 @@ def home(request):  # type: ignore
         page_number = request.GET.get("page")
         records = paginator.get_page(page_number)  # type: ignore
 
-    return render(request, "home.html", {"records": records})  # type: ignore
+    role = get_user_role(request.user)
+    return render(request, "home.html", {"records": records, "user_role": role})  # type: ignore
 
 
 # funcion para logiar
@@ -204,6 +224,10 @@ def register_user(request):  # type: ignore
 
 def delete_record(request, pk):  # type: ignore
     if request.user.is_authenticated:  # pyright: ignore[reportUnknownMemberType]
+        role = get_user_role(request.user)
+        if not can_manage_records(role):
+            messages.error(request, "No tienes permiso para eliminar registros.")
+            return redirect("home")
         delete_it = Record.objects.get(id=pk)  # type: ignore # obtenemos el registro del cliente utilizando su clave primaria (pk)
         delete_it.delete()  # type: ignore# eliminamos el registro del cliente de la base de datos
         messages.success(request, "registro eliminado correctamente")  # type: ignore# mostramos un mensaje de éxito indicando que el registro fue eliminado correctamente
@@ -219,6 +243,10 @@ def delete_record(request, pk):  # type: ignore
 
 def update_record(request, pk):  # type: ignore
     if request.user.is_authenticated:  # pyright: ignore[reportUnknownMemberType]
+        role = get_user_role(request.user)
+        if not can_manage_records(role):
+            messages.error(request, "No tienes permiso para actualizar registros.")
+            return redirect("home")
         current_record = Record.objects.get(id=pk)  # type: ignore # obtenemos el registro del cliente utilizando su clave primaria (pk)
         form = RecordForm(request.POST or None, instance=current_record)  # type: ignore # creamos una instancia del formulario de registro de clientes, pasando los datos enviados en la solicitud POST (si los hay) y el registro actual como instancia para que el formulario sepa que estamos actualizando un registro existente
         if form.is_valid():  # type: ignore # verificamos si el formulario es válido, es decir, si los datos cumplen con las reglas de validación definidas en el formulario
@@ -238,7 +266,11 @@ def update_record(request, pk):  # type: ignore
 def customer_record(request, pk):
     if request.user.is_authenticated:
         customer_record = Record.objects.get(id=pk)
-        return render(request, "record.html", {"customer_record": customer_record})
+        return render(
+            request,
+            "record.html",
+            {"customer_record": customer_record, "user_role": get_user_role(request.user)},
+        )
     else:
         messages.error(request, "Debes iniciar sesión para ver el registro del cliente")
         return redirect("home")
@@ -264,7 +296,11 @@ def list_orders(request):
     page_obj = paginator.get_page(page_number)
 
     # Enviamos los datos protegidos al template
-    return render(request, "orders.html", {"orders": page_obj})
+    return render(
+        request,
+        "orders.html",
+        {"orders": page_obj, "user_role": get_user_role(request.user)},
+    )
 
 
 # =====================================================================
@@ -276,6 +312,11 @@ def create_order(request):
     Vista protegida que procesa el formulario de creación de pedidos.
     Cuenta con validación segura de peticiones POST y manejo de mensajes del sistema.
     """
+    role = get_user_role(request.user)
+    if not can_manage_records(role):
+        messages.error(request, "Solo los administradores o vendedores pueden crear pedidos.")
+        return redirect("list_orders")
+
     if request.method == "POST":
         # Pasamos los datos del POST al formulario para su validación
         form = OrderForm(request.POST)
@@ -295,4 +336,4 @@ def create_order(request):
         # Si la petición es GET, simplemente mostramos el formulario vacío
         form = OrderForm()
 
-    return render(request, "add_order.html", {"form": form})
+    return render(request, "add_order.html", {"form": form, "user_role": role})
