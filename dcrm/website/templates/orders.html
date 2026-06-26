@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📦 Módulo de Pedidos</h2>
+        <a href="{% url 'crear_order' %}" class="btn btn-success">
+            <i class="fa fa-plus"></i> Registrar Nuevo Pedido
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-striped table-hover table-bordered align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Descripción</th>
+                        <th scope="col">Monto Total</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Fecha de Registro</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if orders %}
+                        {% for order in orders %}
+                            <tr>
+                                <td><strong>#{{ order.id }}</strong></td>
+                                <td>{{ order.customer.first_name }} {{ order.customer.last_name }}</td>
+                                <td>{{ order.description|truncatechars:50 }}</td>
+                                <td>${{ order.total_amount }}</td>
+                                <td>
+                                    {% if order.status == 'Pagado' %}
+                                        <span class="badge bg-success">Pagado</span>
+                                    {% elif order.status == 'Pendiente' %}
+                                        <span class="badge bg-warning text-dark">Pendiente</span>
+                                    {% elif order.status == 'Enviado' %}
+                                        <span class="badge bg-info text-dark">Enviado</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Cancelado</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                No se encontraron pedidos registrados en el sistema.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if orders.has_other_pages %}
+        <nav aria-label="Navegación de páginas de pedidos" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if orders.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ orders.previous_page_number }}">Anterior</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+                {% endif %}
+
+                {% for i in orders.paginator.page_range %}
+                    {% if orders.number == i %}
+                        <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if orders.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ orders.next_page_number }}">Siguiente</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+
+</div>
+{% endblock %}
