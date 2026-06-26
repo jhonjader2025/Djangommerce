@@ -4,6 +4,9 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
 
+from .models import Order
+
+
 from .models import Record
 
 
@@ -123,3 +126,49 @@ class RecordForm(forms.ModelForm):
             "state",
             "zip_code",
         ]
+
+
+class OrderForm(forms.ModelForm):
+    """
+    Formulario para la creación y edición de Pedidos (Order).
+    Maneja la vinculación con el cliente y los detalles de la compra.
+    """
+
+    class Meta:
+        model = Order
+        # Especificamos los campos que se le mostrarán al usuario en el frontend.
+        # 'customer' generará automáticamente un dropdown seguro con los clientes existentes (Records).
+        fields = ["customer", "description", "total_amount", "status"]
+
+        # personalizamos los campos con Bootstrap para que se vea genial y profesional
+        widgets = {
+            "customer": forms.Select(
+                attrs={"class": "form-control", "placeholder": "Seleccione el cliente"}
+            ),
+            "description": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Detalla los productos o el concepto del pedido...",
+                }
+            ),
+            "total_amount": forms.NumberInput(
+                attrs={"class": "form-control", "placeholder": "0.00", "step": "0.01"}
+            ),
+            "status": forms.Select(attrs={"class": "form-control"}),
+        }
+
+    # =====================================================================
+    # CAPA DE SEGURIDAD: Validamos los datos en el backend antes de guardar
+    # =====================================================================
+    def clean_total_amount(self):
+        """
+        Validación de seguridad: Evita que registren pedidos con montos
+        negativos o vacíos en el sistema.
+        """
+        total = self.cleaned_data.get("total_amount")
+        if total is not None and total <= 0:
+            raise forms.ValidationError(
+                "Por seguridad, el monto total del pedido debe ser mayor a 0."
+            )
+        return total

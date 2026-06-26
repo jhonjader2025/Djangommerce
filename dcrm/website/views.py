@@ -12,6 +12,19 @@ from .forms import UserRegisterForm, RecordForm  # type: ignore # Importamos el 
 from .models import Record
 from django.core.paginator import Paginator  # type: ignore # Importamos la clase Paginator de Django para manejar la paginación de los registros en la vista home.
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+
+# SEGURIDAD: Importamos el decorador para obligar a que el usuario esté autenticado
+from django.contrib.auth.decorators import login_required
+
+# Importamos el paginador para manejar grandes volúmenes de pedidos de forma eficiente
+from django.core.paginator import Paginator
+
+# Importamos el modelo y el formulario que cree
+from .models import Order
+from .forms import OrderForm
+
 
 def create_sample_records():
     if Record.objects.exists():
@@ -229,3 +242,57 @@ def customer_record(request, pk):
     else:
         messages.error(request, "Debes iniciar sesión para ver el registro del cliente")
         return redirect("home")
+
+
+# =====================================================================
+# VISTA 1: LISTAR PEDIDOS (CON SEGURIDAD DE SESIÓN Y PAGINACIÓN)
+# =====================================================================
+@login_required(
+    login_url="home"
+)  # Si la sesión expira o no está logueado, redirige a la raíz (login)
+def list_orders(request):
+    """
+    Vista protegida que recupera todos los pedidos registrados en MySQL
+    y los muestra de forma paginada para optimizar el rendimiento del servidor.
+    """
+    # Recuperamos todos los pedidos de la base de datos, ordenados del más reciente al más antiguo
+    orders_list = Order.objects.all().order_by("-created_at")
+
+    # PAGINACIÓN: Mostramos 10 pedidos por página para no sobrecargar el navegador
+    paginator = Paginator(orders_list, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    # Enviamos los datos protegidos al template
+    return render(request, "orders.html", {"orders": page_obj})
+
+
+# =====================================================================
+# VISTA 2: CREAR PEDIDO (CON VALIDACIÓN CSRF Y BACKEND)
+# =====================================================================
+@login_required(login_url="home")
+def create_order(request):
+    """
+    Vista protegida que procesa el formulario de creación de pedidos.
+    Cuenta con validación segura de peticiones POST y manejo de mensajes del sistema.
+    """
+    if request.method == "POST":
+        # Pasamos los datos del POST al formulario para su validación
+        form = OrderForm(request.POST)
+
+        # Validamos que los datos sean correctos y que pasen los filtros de seguridad (ej. monto > 0)
+        if form.is_valid():
+            form.save()  # Guarda de forma segura en MySQL
+            messages.success(request, "¡Pedido registrado exitosamente en el sistema!")
+            return redirect("list_orders")  # Redirige al listado general de pedidos
+        else:
+            # Si el formulario no es válido (ej. inyección de datos erróneos), avisa al usuario
+            messages.error(
+                request,
+                "Hubo un error al registrar el pedido. Revisa los datos ingresados.",
+            )
+    else:
+        # Si la petición es GET, simplemente mostramos el formulario vacío
+        form = OrderForm()
+
+    return render(request, "add_order.html", {"form": form})
