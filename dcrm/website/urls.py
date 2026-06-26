@@ -13,4 +13,6 @@ urlpatterns = [  # type: ignore
     path("pedidos/", views.list_orders, name="list_orders"),
     # Ruta para acceder al formulario y procesar la creación de un nuevo pedido
     path("crear-pedido/", views.create_order, name="create_order"),
+    # Ruta para procesar y mostrar el formulario de creación de pedidos
+    path("pedidos/crear/", views.create_order, name="create_order"),
 ]

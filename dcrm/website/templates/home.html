@@ -1,622 +1,254 @@
 {% extends 'base.html' %}
 {% block content %}
 
-
 <style>
     :root {
-        --primary-blue: #0066cc;
-        --gradient-start: #0052a3;
-        --gradient-end: #0073e6;
+        --crm-bg: #0e4a86;
+        --crm-card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        --crm-primary: #1e293b;
     }
 
-
-    .login-split-container {
-        min-height: calc(100vh - 56px); /* Ajustar según altura de tu navbar */
-        display: flex;
-        margin: 0;
-        padding: 0;
+    body {
+        background-color: var(--crm-bg);
     }
 
+    /* Contenedor principal del Dashboard */
+    .dashboard-container {
+        padding: 2rem 1.5rem;
+        min-height: calc(100vh - 56px);
+    }
 
-    /* Sección izquierda - Azul con degradado */
-    .login-left-section {
-        background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-        padding: 3rem 2rem;
-        color: white;
-        position: relative;
+    /* Tarjetas de datos premium */
+    .crm-card {
+        background: #f49f9f;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        box-shadow: var(--crm-card-shadow);
         overflow: hidden;
     }
 
-
-    /* Forma curva en el borde derecho */
-    .login-left-section::after {
-        content: '';
-        position: absolute;
-        right: -50px;
-        top: 0;
-        width: 100px;
-        height: 100%;
-        background: white;
-        border-radius: 50% 0 0 50%;
-    }
-
-
-    .login-rocket-icon {
-        font-size: 4rem;
-        margin-bottom: 1.5rem;
-        animation: float 3s ease-in-out infinite;
-    }
-
-
-    @keyframes float {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
-    }
-
-
-    .login-welcome-text {
-        text-align: center;
-        z-index: 1;
-        width: 100%;
-        max-width: 1180px;
-    }
-
-
-    .login-welcome-text h1 {
-        font-size: 2.5rem;
-        font-weight: 300;
-        margin-bottom: 1rem;
-    }
-
-
-    .login-welcome-text p {
-        font-size: 1.1rem;
-        opacity: 0.9;
-        max-width: 560px;
-        margin: 0 auto;
-        line-height: 1.6;
-    }
-
-
-    /* Sección derecha - Formulario */
-    .login-right-section {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        padding: 3rem 5rem;
-        background: white;
-    }
-
-
-    .login-header {
-        text-align: right;
-        margin-bottom: 3rem;
-    }
-
-
-    .login-header h2 {
-        color: var(--primary-blue);
-        font-weight: 400;
-        font-size: 2rem;
-    }
-
-
-    .login-form-control {
-        border: 1px solid #e0e0e0;
-        padding: 0.8rem 1rem;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-    }
-
-
-    .login-form-control:focus {
-        border-color: var(--primary-blue);
-        box-shadow: 0 0 0 0.2rem rgba(0, 102, 204, 0.15);
-    }
-
-
-    .login-form-label {
-        color: #666;
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-    }
-
-
-    .login-required::after {
-        content: ' *';
-        color: #dc3545;
-    }
-
-
-    .login-btn {
-        background-color: var(--primary-blue);
-        border: none;
-        padding: 0.8rem 2rem;
-        font-size: 1rem;
-        border-radius: 4px;
-        transition: all 0.3s ease;
-        float: right;
-        margin-top: 1rem;
-        color: white;
-    }
-
-
-    .login-btn:hover {
-        background-color: var(--gradient-start);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 82, 163, 0.3);
-        color: white;
-    }
-
-
-    .login-input-group-text {
-        background-color: transparent;
-        border-right: none;
-        color: #999;
-        padding: 0.8rem 1rem;
-    }
-
-
-    .login-form-control.login-with-icon {
-        border-left: none;
-    }
-
-
-    .login-input-group {
-        display: flex;
-        align-items: stretch;
-    }
-
-
-    .login-input-group .login-input-group-text {
-        border: 1px solid #e0e0e0;
-        border-right: none;
-        border-radius: 0.375rem 0 0 0.375rem;
-    }
-
-
-    .login-input-group .login-form-control {
-        border-radius: 0 0.375rem 0.375rem 0;
-        flex: 1;
-    }
-
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .login-split-container {
-            flex-direction: column;
-        }
-
-
-        .login-left-section::after {
-            display: none;
-        }
-
-
-        .login-left-section {
-            min-height: 40vh;
-            padding: 2rem;
-        }
-
-
-        .login-right-section {
-            padding: 2rem;
-        }
-    }
-
-
-    /* Mensajes de Django */
-    .login-messages {
-        position: fixed;
-        top: 80px;
-        right: 20px;
-        z-index: 1050;
-    }
-
-
-    .records-table-wrapper {
-        width: 100%;
-        max-width: 1120px;
-        margin: 2rem auto 0;
+    /* Estilos globales para las tablas del sistema */
+    .table-responsive-custom {
         overflow-x: auto;
         border-radius: 8px;
-        background: #ffffff;
-        padding: 0.75rem;
-        box-shadow: 0 18px 42px rgba(0, 32, 76, 0.24);
     }
 
-
-    .records-table {
-        margin-bottom: 0;
-        min-width: 960px;
-        border-collapse: separate;
-        border-spacing: 0;
-        text-align: left;
-        vertical-align: middle;
-        background: white;
-    }
-
-
-    .records-table th {
-        white-space: nowrap;
+    .crm-table th {
+        background-color: #f1f5f9 !important;
+        color: #475569;
         font-weight: 600;
-        font-size: 0.85rem;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        padding: 1rem;
     }
 
-
-    .records-table td {
-        white-space: nowrap;
-        font-size: 0.9rem;
+    .crm-table td {
+        padding: 1rem;
+        font-size: 0.875rem;
+        color: #334155;
+        vertical-align: middle;
     }
 
-
-    .records-table thead th {
-        background: #f1f5f9;
-        color: #1f2937;
-        border-bottom: 1px solid #d8dee6;
-        padding: 0.95rem 0.85rem;
+    /* Contenedor del Login Centrado */
+    .login-centered-container {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-
-    .records-table tbody td,
-    .records-table tbody th {
-        color: #263238;
-        padding: 0.9rem 0.85rem;
-        border-bottom: 1px solid #edf1f5;
-    }
-
-
-    .records-table .table-active td,
-    .records-table .table-active th {
-        background-color: #f6f9ff;
-    }
-
-
-    .records-table tbody tr:hover td,
-    .records-table tbody tr:hover th {
-        background-color: #eaf2ff;
-    }
-
-
-    .records-table th:first-child,
-    .records-table td:first-child {
-        border-left: 0;
-    }
-
-
-    .records-empty {
-        padding: 1.5rem;
-        color: #5f6b7a;
-    }
-
-
-    @media (max-width: 768px) {
-        .login-left-section {
-            padding: 2rem 1rem;
-        }
-
-
-        .login-welcome-text h1 {
-            font-size: 1.8rem;
-        }
-
-
-        .login-welcome-text p {
-            font-size: 1rem;
-        }
-
-
-        .records-table-wrapper {
-            box-shadow: none;
-            overflow: visible;
-            background: transparent;
-            padding: 0;
-            margin-top: 1.5rem;
-        }
-
-
-        .records-table,
-        .records-table thead,
-        .records-table tbody,
-        .records-table th,
-        .records-table td,
-        .records-table tr {
-            display: block;
-        }
-
-
-        .records-table thead {
-            display: none;
-        }
-
-
-        .records-table {
-            min-width: 0;
-            background: transparent;
-        }
-
-
-        .records-table tr {
-            margin-bottom: 1rem;
-            border-radius: 8px;
-            overflow: hidden;
-            background: white;
-            box-shadow: 0 10px 26px rgba(0, 32, 76, 0.2);
-        }
-
-
-        .records-table td,
-        .records-table th {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 1rem;
-            white-space: normal;
-            border-bottom: 1px solid #e9ecef;
-            padding: 0.8rem 1rem;
-            text-align: right;
-            word-break: break-word;
-        }
-
-
-        .records-table td::before {
-            content: attr(data-label);
-            flex: 0 0 42%;
-            text-align: left;
-            font-weight: 600;
-            color: #0052a3;
-        }
-
-
-        .records-table th::before {
-            content: "Registro";
-            flex: 0 0 42%;
-            text-align: left;
-            font-weight: 600;
-            color: #0052a3;
-        }
-    }
-
-
-    @media (min-width: 769px) and (max-width: 1200px) {
-        .login-left-section {
-            padding: 2.5rem 1.25rem;
-        }
-
-
-        .records-table-wrapper {
-            max-width: calc(100vw - 3rem);
-        }
+    .login-card {
+        max-width: 450px;
+        width: 100%;
+        border-radius: 16px;
     }
 </style>
 
-
-<!-- Mensajes de Django -->
 {% if messages %}
-<div class="login-messages">
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1050; margin-top: 60px;">
     {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow" role="alert">
-        {{ message }}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0 row-brand" role="alert">
+        <div class="d-flex align-items-center">
+            <span class="me-2">💡</span>
+            <div>{{ message }}</div>
+        </div>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     {% endfor %}
 </div>
 {% endif %}
 
-
-<div class="login-split-container">
-    {% if user.is_authenticated %}
-    <!-- Usuario autenticado - Vista de bienvenida -->
-    <div class="login-left-section" style="flex: 2;">
-        <div class="login-rocket-icon">
-            🚀
+{% if user.is_authenticated %}
+    
+    <div class="container-fluid dashboard-container">
+        
+        <div class="row align-items-center mb-4">
+            <div class="col-md-8">
+                <h1 class="h3 font-weight-bold text-dark mb-1">Bienvenido al Sistema, {{ user.username }}</h1>
+                <p class="text-muted small mb-0">Gestión activa de registros del sistema y operaciones comerciales.</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a href="{% url 'list_orders' %}" class="btn btn-dark btn-sm px-3 shadow-sm me-2">
+                     Ver Pedidos
+                </a>
+                <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm px-3">
+                    Cerrar Sesión
+                </a>
+            </div>
         </div>
-        <div class="login-welcome-text text-start mt-4">
-            <h1>👏🏼 Registrados en el sistema!</h1>
-           
-            <div class="records-table-wrapper mt-4">
-                <table class="table table-hover records-table">
-                    <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">Nombre</th>
-                            <th>Apellido</th>
-                            <th>Email</th>
-                            <th>Teléfono</th>
-                            <th>Dirección</th>
-                            <th>Ciudad</th>
-                            <th>Estado</th>
-                            <th>Código Postal</th>
-                            <th>Fecha de Creación</th>
-                            <th>ID</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% if records %}
-                            {% for record in records %}
-                                <tr class="{% cycle 'table-active' '' %}">
-                                    <th scope="row">{{ forloop.counter }}</th>
-                                    <td data-label="Nombre">{{ record.first_name }}</td>
-                                    <td data-label="Apellido">{{ record.last_name }}</td>
-                                    <td data-label="Email">{{ record.email }}</td>
-                                    <td data-label="Teléfono">{{ record.phone }}</td>
-                                    <td data-label="Dirección">{{ record.address }}</td>
-                                    <td data-label="Ciudad">{{ record.city }}</td>
-                                    <td data-label="Estado">{{ record.state }}</td>
-                                    <td data-label="Código Postal">{{ record.zip_code }}</td>
-                                    <td data-label="Fecha de Creación">{{ record.created_at }}</td>
-                                    <td data-label="Id"><a href="{% url 'customer_record' record.id %}">{{ record.id }}</a></td>
-                                </tr>
-                            {% endfor %}
-                        {% else %}
+
+        <div class="card crm-card border-0">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="card-title mb-0 text-secondary"> Clientes Registrados en MySQL</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive table-responsive-custom">
+                    <table class="table table-hover crm-table mb-0">
+                        <thead>
                             <tr>
-                                <td colspan="10" class="records-empty text-center">No hay registros disponibles.</td>
+                                <th scope="col" class="text-center">#</th>
+                                <th scope="col">ID</th>
+                                <th scope="col">Nombre Completo</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Teléfono</th>
+                                <th scope="col">Dirección</th>
+                                <th scope="col">Ciudad / Estado</th>
+                                <th scope="col">Código Postal</th>
+                                <th scope="col">Fecha de Creación</th>
                             </tr>
+                        </thead>
+                        <tbody>
+                            {% if records %}
+                                {% for record in records %}
+                                    <tr>
+                                        <td class="text-center text-muted fw-bold">{{ forloop.counter }}</td>
+                                        <td>
+                                            <a href="{% url 'customer_record' record.id %}" class="badge bg-light text-dark border text-decoration-none">
+                                                ID: {{ record.id }} 🔍
+                                            </a>
+                                        </td>
+                                        <td><strong>{{ record.first_name }} {{ record.last_name }}</strong></td>
+                                        <td>{{ record.email }}</td>
+                                        <td>{{ record.phone }}</td>
+                                        <td>{{ record.address }}</td>
+                                        <td>{{ record.city }}, {{ record.state }}</td>
+                                        <td><span class="font-monospace text-muted">{{ record.zip_code }}</span></td>
+                                        <td><small class="text-muted">{{ record.created_at|date:"d M, Y H:i" }}</small></td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted py-5">
+                                        <p class="mb-0">⚠️ No hay registros de clientes disponibles en la base de datos.</p>
+                                    </td>
+                                endfor %}
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {% if records.has_other_pages %}
+        <nav aria-label="Paginación de registros" class="mt-4">
+            <ul class="pagination pagination-sm justify-content-center">
+                {% if records.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link text-dark" href="?page=1">&laquo;</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link text-dark" href="?page={{ records.previous_page_number }}">&lsaquo;</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                    <li class="page-item disabled"><span class="page-link">&lsaquo;</span></li>
+                {% endif %}
+
+                {% for num in records.paginator.page_range %}
+                    {% if num >= records.number|add:'-2' and num <= records.number|add:'2' %}
+                        {% if records.number == num %}
+                            <li class="page-item active"><span class="page-link bg-dark border-dark">{{ num }}</span></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link text-dark" href="?page={{ num }}">{{ num }}</a></li>
                         {% endif %}
-                    </tbody>
-                </table>
-                <!-- Paginación -->
-    <!-- Paginación estilizada y responsive con Bootstrap -->
-<div class="container mt-5">
-  <div class="row">
-    <div class="col text-center">
-      <nav aria-label="Paginación de registros">
-        <ul class="pagination pagination-lg justify-content-center flex-wrap">
+                    {% endif %}
+                {% endfor %}
 
+                {% if records.has_next %}
+                    <li class="page-item">
+                        <a class="page-link text-dark" href="?page={{ records.next_page_number }}">&rsaquo;</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link text-dark" href="?page={{ records.paginator.num_pages }}">&raquo;</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">&rsaquo;</span></li>
+                    <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
 
-
-
-          {% if records.has_previous %}
-            <li class="page-item">
-              <a class="page-link bg-dark text-white" href="?page=1" title="Primera página">&laquo;</a>
-            </li>
-            <li class="page-item">
-              <a class="page-link bg-dark text-white" href="?page={{ records.previous_page_number }}" title="Anterior">&lsaquo;</a>
-            </li>
-          {% else %}
-            <li class="page-item disabled">
-              <span class="page-link bg-secondary text-white">&laquo;</span>
-            </li>
-            <li class="page-item disabled">
-              <span class="page-link bg-secondary text-white">&lsaquo;</span>
-            </li>
-          {% endif %}
-
-
-
-
-          {% for num in records.paginator.page_range %}
-            {% if num >= records.number|add:'-2' and num <= records.number|add:'2' %}
-              {% if records.number == num %}
-                <li class="page-item active">
-                  <span class="page-link">{{ num }}</span>
-                </li>
-              {% else %}
-                <li class="page-item">
-                  <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                </li>
-              {% endif %}
-            {% endif %}
-          {% endfor %}
-
-
-
-
-          {% if records.has_next %}
-            <li class="page-item">
-              <a class="page-link bg-dark text-white" href="?page={{ records.next_page_number }}" title="Siguiente">&rsaquo;</a>
-            </li>
-            <li class="page-item">
-              <a class="page-link bg-dark text-white" href="?page={{ records.paginator.num_pages }}" title="Última página">&raquo;</a>
-            </li>
-          {% else %}
-            <li class="page-item disabled">
-              <span class="page-link bg-secondary text-white">&rsaquo;</span>
-            </li>
-            <li class="page-item disabled">
-              <span class="page-link bg-secondary text-white">&raquo;</span>
-            </li>
-          {% endif %}
-
-
-
-
-        </ul>
-        <p class="text-muted mt-2">Página {{ records.number }} de {{ records.paginator.num_pages }}</p>
-      </nav>
-    </div>
-  </div>
-</div>
-
-
-            </div>
-        </div>
-    </div>
-    <div class="login-right-section" style="flex: 1; justify-content: center; align-items: center;">
-        <div class="text-center">
-            <h3 class="text-primary mb-4">✋🏼 Hola, {{ user.username }}</h3>
-            <a href="{% url 'logout' %}" class="btn btn-outline-danger">Cerrar sesión</a>
-        </div>
     </div>
 
-
-    {% else %}
-    <!-- Usuario no autenticado - Formulario de login -->
-    <div class="login-left-section">
-        <div class="login-rocket-icon">
-            🚀
-        </div>
-        <div class="login-welcome-text">
-            <h1>Welcome</h1>
-            <p>You are 30 seconds away from earning your own money!</p>
-        </div>
-    </div>
-
-
-    <div class="login-right-section">
-        <div class="login-header">
-            <h2>🔐 Login</h2>
-        </div>
-
-
-        <form method="POST" action="{% url 'home' %}" novalidate>
-            {% csrf_token %}
-
-
-            <div class="mb-4">
-                <label for="username" class="login-form-label login-required">Usuario</label>
-                <div class="login-input-group">
-                    <span class="login-input-group-text">👤</span>
-                    <input type="text" class="login-form-control login-with-icon" name="username" id="username" placeholder="Ingresa tu usuario" required>
+{% else %}
+    
+    <div class="container login-centered-container">
+        <div class="card crm-card login-card border-0 p-4">
+            <div class="card-body">
+                
+                <div class="text-center mb-4">
+                    <span style="font-size: 2.5rem;">Iniciar sesion</span>
+                    <p class="text-muted small">Ingresa tus credenciales seguras para acceder al GOBIERNO.</p>
                 </div>
-                <div class="form-text text-muted">We'll never share your username with anyone else.</div>
-            </div>
 
+                <form method="POST" action="{% url 'home' %}" novalidate>
+                    {% csrf_token %}
 
-            <div class="mb-4">
-                <label for="password" class="login-form-label login-required">Password</label>
-                <div class="login-input-group">
-                    <span class="login-input-group-text">🔒</span>
-                    <input type="password" class="login-form-control login-with-icon" id="password" name="password" placeholder="••••••••" required>
-                    <button class="btn btn-outline-secondary" type="button" id="togglePassword" style="border-left: none;">
-                        👁️
+                    <div class="mb-3">
+                        <label for="username" class="form-label text-secondary small fw-bold">Usuario *</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted">👤</span>
+                            <input type="text" class="form-control border-start-0 bg-light" name="username" id="username" placeholder="Tu usuario de administrador" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password" class="form-label text-secondary small fw-bold">Contraseña *</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control border-start-0 border-end-0 bg-light" id="password" name="password" placeholder="••••••••" required>
+                            <button class="btn btn-light border border-start-0 text-muted" type="button" id="togglePassword">
+                                👁️
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="remember" name="remember">
+                            <label class="form-check-label text-muted small" for="remember">
+                                Recordarme
+                            </label>
+                        </div>
+                        <a href="#" class="text-decoration-none small text-secondary">¿Olvidaste tu contraseña?</a>
+                    </div>
+
+                    <button type="submit" class="btn btn-dark w-100 py-2 shadow-sm fw-bold">
+                        Iniciar Sesión →
                     </button>
-                </div>
+                </form>
+
             </div>
-
-
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="remember" name="remember">
-                    <label class="form-check-label text-muted" for="remember">
-                        Recordarme
-                    </label>
-                </div>
-                <a href="#" class="text-decoration-none" style="color: var(--primary-blue);">¿Olvidaste tu contraseña?</a>
-            </div>
-
-
-            <button type="submit" class="btn login-btn">
-                Login →
-            </button>
-        </form>
+        </div>
     </div>
-    {% endif %}
-</div>
 
+{% endif %}
 
 <script>
-    // Toggle password visibility
+    // Conmutador para visibilidad de la contraseña en el login
     document.getElementById('togglePassword')?.addEventListener('click', function() {
         const passwordInput = document.getElementById('password');
-
-
         if (passwordInput.type === 'password') {
             passwordInput.type = 'text';
             this.textContent = '🙈';
@@ -626,8 +258,7 @@
         }
     });
 
-
-    // Auto-cerrar mensajes después de 5 segundos
+    // Cierre automático y controlado de las alertas de Django a los 5 segundos
     setTimeout(function() {
         const alerts = document.querySelectorAll('.alert');
         alerts.forEach(alert => {
@@ -636,6 +267,5 @@
         });
     }, 5000);
 </script>
-
 
 {% endblock %}

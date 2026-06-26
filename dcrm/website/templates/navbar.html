@@ -1,26 +1,97 @@
-<!-- Este es el código para la barra de navegación (navbar) usando Bootstrap -->
-<!-- navbar.html -->
-<!-- para mas estilos https://getbootstrap.com/docs/5.3/components/navbar/-->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<!-- NAV BAR EVOLUCIONADO - STYLE GLASSMORPHISM -->
+<style>
+  .custom-navbar {
+    background: rgba(15, 23, 42, 0.65) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+    padding: 0.8rem 1.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .navbar-brand-tech {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: transform 0.2s ease;
+  }
+
+  .navbar-brand-tech:hover {
+    transform: scale(1.02);
+  }
+
+  .nav-link-tech {
+    color: #94a3b8 !important;
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 0.5rem 1rem !important;
+    margin: 0 0.2rem;
+    border-radius: 8px;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .nav-link-tech:hover {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateY(-1px);
+  }
+
+  .nav-link-danger-tech:hover {
+    color: #f87171 !important;
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  .navbar-toggler-tech {
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .navbar-toggler-tech:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+  }
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-dark custom-navbar sticky-top">
   <div class="container-fluid">
-    <!-- El enlace de la marca que redirige a la página de inicio href="{% url 'home' %} -->
-    <a class="navbar-brand" href="{% url 'home' %}">Django CMR</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
+    <a class="navbar-brand navbar-brand-tech" href="{% url 'home' %}">
+      ⚡ Django CRM
+    </a>
+
+    <button class="navbar-toggler navbar-toggler-tech" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon" style="filter: invert(0.25);"></span>
     </button>
+
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
         {% if user.is_authenticated %}
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'logout' %}">Cerrar Usuario ❌</a>
-        </li>
+          <li class="nav-item">
+            <a class="nav-link nav-link-tech" href="{% url 'list_orders' %}">
+              <span>Pedidos</span> 📦
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link nav-link-tech nav-link-danger-tech" href="{% url 'logout' %}">
+              <span>Cerrar Usuario</span> ❌
+            </a>
+          </li>
         {% else %}
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'register' %}">Registrar✍🏼</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'home' %}">Iniciar sesion 👨🏼‍💼</a>
-        </li>
+          <li class="nav-item">
+            <a class="nav-link nav-link-tech" href="{% url 'register' %}">
+              <span>Registrar</span> ✍🏼
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link nav-link-tech" href="{% url 'home' %}">
+              <span>Iniciar Sesión</span> 👨🏼‍💼
+            </a>
+          </li>
         {% endif %}
       </ul>
     </div>
