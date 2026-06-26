@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .admin-user-shell {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+    }
+
+    .admin-user-card {
+        width: 100%;
+        max-width: 560px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 18px 42px rgba(0, 32, 76, 0.16);
+        padding: 2rem;
+    }
+
+    .admin-user-title {
+        color: #0f172a;
+        font-weight: 700;
+        font-size: 1.6rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .admin-user-subtitle {
+        color: #64748b;
+        margin-bottom: 1.3rem;
+    }
+
+    .admin-user-form .form-control {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.8rem 1rem;
+    }
+
+    .admin-user-btn {
+        width: 100%;
+        border: 0;
+        border-radius: 10px;
+        padding: 0.8rem 1.2rem;
+        font-weight: 600;
+        background: #0f172a;
+        color: #fff;
+    }
+
+    .admin-user-alert {
+        background: rgba(220, 53, 69, 0.08);
+        border: 1px solid rgba(220, 53, 69, 0.15);
+        color: #b91c1c;
+        border-radius: 10px;
+        padding: 0.9rem 1rem;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="admin-user-shell">
+    <div class="admin-user-card">
+        <div class="text-center mb-4">
+            <h2 class="admin-user-title">Crear cuenta con rol</h2>
+            <p class="admin-user-subtitle">Solo administradores pueden crear usuarios con perfil de acceso.</p>
+        </div>
+
+        <form method="post" action="" class="admin-user-form">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="admin-user-alert">
+                <strong>Error:</strong> Revisa los datos del formulario.
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <div><strong>{{ field.label }}:</strong> {{ error }}</div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% for field in form %}
+                <div class="mb-3">
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small class="text-muted d-block mt-1">{{ field.help_text|safe }}</small>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="admin-user-btn">Crear usuario</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -4,19 +4,13 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
 
-from .models import Order, UserProfile
+from .models import Order, Product, UserProfile
 
 
 from .models import Record
 
 
 class UserRegisterForm(UserCreationForm):
-    ROLE_CHOICES = [
-        ("usuario", "Usuario básico"),
-        ("vendedor", "Vendedor"),
-        ("admin", "Administrador"),
-    ]
-
     email = forms.EmailField(
         label="", widget=forms.EmailInput(attrs={"placeholder": "Correo electronico"})
     )
@@ -26,12 +20,6 @@ class UserRegisterForm(UserCreationForm):
     last_name = forms.CharField(
         label="", widget=forms.TextInput(attrs={"placeholder": "Apellido"})
     )
-    role = forms.ChoiceField(
-        label="",
-        choices=ROLE_CHOICES,
-        initial="usuario",
-        widget=forms.Select(attrs={"class": "form-control"}),
-    )
 
     class Meta:
         model = User
@@ -40,7 +28,6 @@ class UserRegisterForm(UserCreationForm):
             "email",
             "first_name",
             "last_name",
-            "role",
             "password1",
             "password2",
         ]
@@ -75,19 +62,54 @@ class UserRegisterForm(UserCreationForm):
             '<span class="form-text text-muted">Requerido. Debe coincidir con la contrasena anterior.</span>'
         )
 
-        self.fields["role"].widget.attrs["class"] = "form-control"
-        self.fields["role"].label = ""
-        self.fields["role"].help_text = (
-            '<span class="form-text text-muted">Elige el rol inicial del usuario.</span>'
-        )
-
     def save(self, commit=True):
         user = super().save(commit=False)
-        role = self.cleaned_data.get("role", "usuario")
         if commit:
             user.save()
             profile, _ = UserProfile.objects.get_or_create(user=user)
-            profile.role = role
+            profile.role = "usuario"
+            profile.save()
+        return user
+
+
+class AdminUserCreateForm(UserRegisterForm):
+    ROLE_CHOICES = [
+        ("usuario", "Usuario básico"),
+        ("vendedor", "Vendedor"),
+        ("admin", "Administrador"),
+    ]
+
+    role = forms.ChoiceField(
+        label="",
+        choices=ROLE_CHOICES,
+        initial="usuario",
+        widget=forms.Select(attrs={"class": "form-control"}),
+    )
+
+    class Meta(UserRegisterForm.Meta):
+        fields = [
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "role",
+            "password1",
+            "password2",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["role"].widget.attrs["class"] = "form-control"
+        self.fields["role"].label = ""
+        self.fields["role"].help_text = (
+            '<span class="form-text text-muted">Selecciona el rol del nuevo usuario.</span>'
+        )
+
+    def save(self, commit=True):
+        user = super().save(commit=commit)
+        if commit:
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.role = self.cleaned_data.get("role", "usuario")
             profile.save()
         return user
 
@@ -227,3 +249,39 @@ class OrderAdminForm(OrderForm):
         self.fields["assigned_seller"].queryset = User.objects.filter(
             profile__role__in=["vendedor", "admin"]
         ).order_by("username")
+
+
+class ProductAdminForm(forms.ModelForm):
+    """Formulario para que admin cargue productos de ropa con imagen."""
+
+    class Meta:
+        model = Product
+        fields = ["name", "description", "image_url", "price", "stock", "is_active"]
+        widgets = {
+            "name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Nombre del producto"}
+            ),
+            "description": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Descripción corta de la prenda...",
+                }
+            ),
+            "image_url": forms.URLInput(
+                attrs={"class": "form-control", "placeholder": "https://..."}
+            ),
+            "price": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.01", "placeholder": "0.00"}
+            ),
+            "stock": forms.NumberInput(
+                attrs={"class": "form-control", "placeholder": "0"}
+            ),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
+
+    def clean_price(self):
+        price = self.cleaned_data.get("price")
+        if price is not None and price <= 0:
+            raise forms.ValidationError("El precio debe ser mayor a cero.")
+        return price

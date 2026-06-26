@@ -6,11 +6,6 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>realice su pedido aqui </h2>
         <div>
-            {% if user_role == 'admin' or user_role == 'vendedor' %}
-            <a href="{% url 'create_order' %}" class="btn btn-success me-2">
-                <i class="fa fa-plus"></i> Registrar Nuevo Pedido
-            </a>
-            {% endif %}
             {% if user_role == 'admin' %}
             <a href="{% url 'admin_orders_dashboard' %}" class="btn btn-dark">
                 Panel Admin
@@ -27,6 +22,7 @@
                         <th scope="col">ID</th>
                         <th scope="col">Cliente</th>
                         <th scope="col">Descripción</th>
+                        <th scope="col">Canal</th>
                         <th scope="col">Monto Total</th>
                         <th scope="col">Estado</th>
                         <th scope="col">Fecha de Registro</th>
@@ -42,6 +38,13 @@
                                 <td><strong>#{{ order.id }}</strong></td>
                                 <td>{{ order.customer.first_name }} {{ order.customer.last_name }}</td>
                                 <td>{{ order.description|truncatechars:50 }}</td>
+                                <td>
+                                    {% if order.channel == 'TIENDA' %}
+                                        <span class="badge bg-primary">Tienda</span>
+                                    {% else %}
+                                        <span class="badge bg-dark">CRM</span>
+                                    {% endif %}
+                                </td>
                                 <td>${{ order.total_amount }}</td>
                                 <td>
                                     {% if order.status == 'Pagado' %}
@@ -65,7 +68,7 @@
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
+                            <td colspan="{% if user_role == 'admin' %}9{% else %}8{% endif %}" class="text-center text-muted py-4">
                                 No se encontraron pedidos registrados en el sistema.
                             </td>
                         </tr>

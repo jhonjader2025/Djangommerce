@@ -6,6 +6,9 @@ urlpatterns = [  # type: ignore
     path("login/", views.login_user, name="login"),  # type: ignore
     path("logout/", views.logout_user, name="logout"),  # type: ignore
     path("registrar/", views.register_user, name="register"),
+    path("admin/usuarios/crear/", views.admin_create_user, name="admin_create_user"),
+    path("admin/productos/", views.admin_manage_products, name="admin_manage_products"),
+    path("admin/productos/eliminar/<int:product_id>/", views.admin_delete_product, name="admin_delete_product"),
     path("record/<str:pk>", views.customer_record, name="customer_record"),  # type: ignore
     path("delete-record/<str:pk>", views.delete_record, name="delete_record"),  # type: ignore
     path("update-record/<str:pk>", views.update_record, name="update_record"),  # type: ignore
@@ -21,4 +24,7 @@ urlpatterns = [  # type: ignore
     # Módulo tienda: catálogo y pedidos por usuario autenticado
     path("tienda/", views.store_home, name="store_home"),
     path("tienda/pedir/<int:product_id>/", views.create_store_order, name="create_store_order"),
+    path("tienda/carrito/", views.store_cart, name="store_cart"),
+    path("tienda/carrito/eliminar/<int:product_id>/", views.remove_store_cart_item, name="remove_store_cart_item"),
+    path("tienda/carrito/checkout/", views.checkout_store_cart, name="checkout_store_cart"),
 ]

@@ -8,7 +8,7 @@ from django.shortcuts import (
 # logout para cerrar sesion
 from django.contrib.auth import authenticate, login, logout  # type: ignore # Importamos las funciones de autenticación, inicio de sesión y cierre de sesión de Django.
 from django.contrib import messages  # type: ignore #
-from .forms import UserRegisterForm, RecordForm  # type: ignore # Importamos el formulario de registro de usuarios personalizado que hemos creado en forms.py.
+from .forms import UserRegisterForm, AdminUserCreateForm, ProductAdminForm, RecordForm  # type: ignore # Importamos el formulario de registro de usuarios personalizado que hemos creado en forms.py.
 from .models import Record
 from django.core.paginator import Paginator  # type: ignore # Importamos la clase Paginator de Django para manejar la paginación de los registros en la vista home.
 
@@ -16,6 +16,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from decimal import Decimal
 from django.db.models import Count, Sum
+from django.db import transaction
 
 # SEGURIDAD: Importamos el decorador para obligar a que el usuario esté autenticado
 from django.contrib.auth.decorators import login_required
@@ -24,8 +25,10 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 
 # Importamos el modelo y el formulario que cree
-from .models import Order, Product, ProductOrder
+from .models import Order, Product
 from .forms import OrderForm, OrderAdminForm
+
+CART_SESSION_KEY = "store_cart"
 
 
 def get_user_role(user):
@@ -51,46 +54,85 @@ def is_admin(role):
     return role == "admin"
 
 
-def create_sample_products():
-    """Carga productos base (frutas) para la tienda si aún no existen."""
-    if Product.objects.exists():
-        return
+def has_special_admin_access(user):
+    """Permiso especial: admin de rol + privilegios de Django admin."""
+    return (
+        getattr(user, "is_authenticated", False)
+        and is_admin(get_user_role(user))
+        and (getattr(user, "is_staff", False) or getattr(user, "is_superuser", False))
+    )
 
-    fruits = [
+
+def create_sample_products():
+    """Carga productos base de ropa y corrige catálogos viejos de frutas."""
+    clothing_products = [
         {
-            "name": "Manzana Roja",
-            "description": "Fruta fresca por unidad",
-            "price": Decimal("1.50"),
-            "stock": 200,
+            "name": "Camiseta Oversize Negra",
+            "description": "Camiseta de algodon estilo urbano.",
+            "image_url": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab",
+            "price": Decimal("24.90"),
+            "stock": 40,
         },
         {
-            "name": "Banano",
-            "description": "Banano maduro de alta calidad",
-            "price": Decimal("0.80"),
-            "stock": 250,
+            "name": "Jeans Slim Azul",
+            "description": "Jeans casual para uso diario.",
+            "image_url": "https://images.unsplash.com/photo-1541099649105-f69ad21f3246",
+            "price": Decimal("39.50"),
+            "stock": 30,
         },
         {
-            "name": "Naranja",
-            "description": "Naranja dulce para jugo",
-            "price": Decimal("1.10"),
-            "stock": 220,
+            "name": "Chaqueta Denim",
+            "description": "Chaqueta de mezclilla unisex.",
+            "image_url": "https://images.unsplash.com/photo-1512436991641-6745cdb1723f",
+            "price": Decimal("59.00"),
+            "stock": 20,
         },
         {
-            "name": "Fresa",
-            "description": "Caja de fresas frescas",
-            "price": Decimal("2.90"),
-            "stock": 120,
+            "name": "Hoodie Gris",
+            "description": "Buzo con capucha y forro suave.",
+            "image_url": "https://images.unsplash.com/photo-1618354691373-d851c5c3a990",
+            "price": Decimal("44.00"),
+            "stock": 35,
         },
         {
-            "name": "Piña",
-            "description": "Piña tropical entera",
-            "price": Decimal("3.20"),
-            "stock": 80,
+            "name": "Tenis Blancos Urban",
+            "description": "Tenis ligeros para outfit casual.",
+            "image_url": "https://images.unsplash.com/photo-1542291026-7eec264c27ff",
+            "price": Decimal("68.00"),
+            "stock": 25,
         },
     ]
 
-    for product_data in fruits:
-        Product.objects.create(**product_data)
+    if not Product.objects.exists():
+        for product_data in clothing_products:
+            Product.objects.create(**product_data)
+        return
+
+    # Compatibilidad: si existen productos antiguos de frutas, los renombramos a ropa.
+    legacy_mapping = {
+        "Manzana Roja": clothing_products[0],
+        "Banano": clothing_products[1],
+        "Naranja": clothing_products[2],
+        "Fresa": clothing_products[3],
+        "Piña": clothing_products[4],
+    }
+
+    for old_name, new_data in legacy_mapping.items():
+        product = Product.objects.filter(name=old_name).first()
+        if product is None:
+            continue
+
+        name_in_use = Product.objects.filter(name=new_data["name"]).exclude(id=product.id)
+        if name_in_use.exists():
+            continue
+
+        product.name = new_data["name"]
+        product.description = new_data["description"]
+        product.image_url = new_data["image_url"]
+        product.price = new_data["price"]
+        product.stock = max(product.stock, new_data["stock"])
+        product.is_active = True
+        product.save()
 
 
 def create_sample_records():
@@ -204,6 +246,79 @@ def create_sample_records():
         Record.objects.create(**record_data)
 
 
+def get_or_create_customer_for_user(user):
+    """Obtiene o crea un Record para vincular pedidos del usuario autenticado."""
+    email = (user.email or "").strip()
+    customer = Record.objects.filter(email=email).first() if email else None
+    if customer:
+        return customer
+
+    first_name = (user.first_name or user.username or "Cliente").strip()[:50]
+    last_name = (user.last_name or "Tienda").strip()[:50]
+    fallback_email = email or f"{user.username}@tienda.local"
+
+    return Record.objects.create(
+        first_name=first_name,
+        last_name=last_name,
+        email=fallback_email,
+        phone_number="0000000000",
+        address="Compra desde tienda",
+        city="N/A",
+        state="N/A",
+        zip_code="0000",
+    )
+
+
+def get_store_cart(request):
+    cart = request.session.get(CART_SESSION_KEY, {})
+    if not isinstance(cart, dict):
+        cart = {}
+    return cart
+
+
+def save_store_cart(request, cart):
+    request.session[CART_SESSION_KEY] = cart
+    request.session.modified = True
+
+
+def build_cart_context(cart):
+    product_ids = [int(pid) for pid in cart.keys() if str(pid).isdigit()]
+    products = Product.objects.filter(id__in=product_ids, is_active=True)
+    products_map = {product.id: product for product in products}
+
+    items = []
+    total = Decimal("0.00")
+    total_items = 0
+
+    for product_id_str, quantity in cart.items():
+        try:
+            product_id = int(product_id_str)
+            qty = int(quantity)
+        except (TypeError, ValueError):
+            continue
+
+        product = products_map.get(product_id)
+        if product is None or qty < 1:
+            continue
+
+        subtotal = product.price * qty
+        total += subtotal
+        total_items += qty
+        items.append(
+            {
+                "product": product,
+                "quantity": qty,
+                "subtotal": subtotal,
+            }
+        )
+
+    return {
+        "items": items,
+        "total": total,
+        "total_items": total_items,
+    }
+
+
 def home(request):  # type: ignore
     # Control de login y listado de registros.
     # Nota: el login se procesa en la misma vista home y solo los usuarios autenticados ven los registros.
@@ -265,6 +380,85 @@ def register_user(request):  # type: ignore
     else:
         form = UserRegisterForm()  # type: ignore
     return render(request, "register.html", {"form": form})  # type: ignore
+
+
+@login_required(login_url="home")
+def admin_create_user(request):
+    """Permite al administrador crear cuentas con rol."""
+    role = get_user_role(request.user)
+    if not has_special_admin_access(request.user):
+        messages.error(
+            request,
+            "Solo una cuenta admin con permisos especiales puede crear usuarios con rol.",
+        )
+        return redirect("home")
+
+    if request.method == "POST":
+        form = AdminUserCreateForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Cuenta creada correctamente con rol asignado.")
+            return redirect("admin_create_user")
+    else:
+        form = AdminUserCreateForm()
+
+    return render(
+        request,
+        "admin_create_user.html",
+        {"form": form, "user_role": role},
+    )
+
+
+@login_required(login_url="home")
+def admin_manage_products(request):
+    """Permite al admin crear productos de ropa con imagen."""
+    role = get_user_role(request.user)
+    if not has_special_admin_access(request.user):
+        messages.error(
+            request,
+            "Solo una cuenta admin con permisos especiales puede gestionar productos.",
+        )
+        return redirect("home")
+
+    if request.method == "POST":
+        form = ProductAdminForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Producto de ropa creado correctamente.")
+            return redirect("admin_manage_products")
+    else:
+        form = ProductAdminForm(initial={"is_active": True})
+
+    products = Product.objects.order_by("-created_at")[:30]
+    return render(
+        request,
+        "admin_manage_products.html",
+        {
+            "form": form,
+            "products": products,
+            "user_role": role,
+        },
+    )
+
+
+@login_required(login_url="home")
+def admin_delete_product(request, product_id):
+    """Elimina un producto de tienda (solo admin especial)."""
+    if request.method != "POST":
+        return redirect("admin_manage_products")
+
+    if not has_special_admin_access(request.user):
+        messages.error(
+            request,
+            "Solo una cuenta admin con permisos especiales puede eliminar productos.",
+        )
+        return redirect("home")
+
+    product = get_object_or_404(Product, id=product_id)
+    product_name = product.name
+    product.delete()
+    messages.success(request, f"Producto eliminado: {product_name}.")
+    return redirect("admin_manage_products")
 
 
 # Funcion para mostrar el registro de un cliente especifico
@@ -373,6 +567,8 @@ def create_order(request):
         if form.is_valid():
             order = form.save(commit=False)
             order.assigned_seller = request.user
+            order.created_by = request.user
+            order.channel = "CRM"
             order.save()
             messages.success(request, "¡Pedido registrado exitosamente en el sistema!")
             return redirect("list_orders")  # Redirige al listado general de pedidos
@@ -437,15 +633,22 @@ def delete_order(request, order_id):
 def admin_orders_dashboard(request):
     """Panel administrador con resumen global de pedidos CRM y tienda."""
     role = get_user_role(request.user)
-    if not is_admin(role):
-        messages.error(request, "Este panel es solo para administradores.")
+    if not has_special_admin_access(request.user):
+        messages.error(
+            request,
+            "Este panel es solo para administradores con permisos especiales.",
+        )
         return redirect("home")
 
-    crm_orders_qs = Order.objects.select_related("customer", "assigned_seller").order_by(
-        "-created_at"
+    crm_orders_qs = (
+        Order.objects.filter(channel="CRM")
+        .select_related("customer", "assigned_seller", "created_by")
+        .order_by("-created_at")
     )
-    store_orders_qs = ProductOrder.objects.select_related("user", "product").order_by(
-        "-created_at"
+    store_orders_qs = (
+        Order.objects.filter(channel="TIENDA")
+        .select_related("customer", "assigned_seller", "created_by")
+        .order_by("-created_at")
     )
 
     crm_total_sales = crm_orders_qs.aggregate(total=Sum("total_amount"))["total"] or 0
@@ -489,13 +692,18 @@ def store_home(request):
     create_sample_products()
     role = get_user_role(request.user)
     products = Product.objects.filter(is_active=True).order_by("name")
+    cart_count = build_cart_context(get_store_cart(request))["total_items"]
     if is_admin(role):
-        my_orders = ProductOrder.objects.select_related("user", "product").order_by(
+        my_orders = Order.objects.filter(channel="TIENDA").select_related(
+            "customer", "created_by"
+        ).order_by(
             "-created_at"
         )[:20]
     else:
-        my_orders = ProductOrder.objects.filter(user=request.user).select_related(
-            "product"
+        my_orders = Order.objects.filter(
+            channel="TIENDA", created_by=request.user
+        ).select_related(
+            "customer", "created_by"
         ).order_by("-created_at")[:8]
 
     return render(
@@ -505,13 +713,14 @@ def store_home(request):
             "products": products,
             "my_orders": my_orders,
             "user_role": role,
+            "cart_count": cart_count,
         },
     )
 
 
 @login_required(login_url="home")
 def create_store_order(request, product_id):
-    """Crea un pedido de tienda para el usuario autenticado."""
+    """Agrega producto al carrito de tienda."""
     if request.method != "POST":
         return redirect("store_home")
 
@@ -534,19 +743,122 @@ def create_store_order(request, product_id):
         )
         return redirect("store_home")
 
-    total_amount = product.price * quantity
-    ProductOrder.objects.create(
-        user=request.user,
-        product=product,
-        quantity=quantity,
-        unit_price=product.price,
-        total_amount=total_amount,
-    )
-    product.stock -= quantity
-    product.save(update_fields=["stock"])
+    cart = get_store_cart(request)
+    current_qty = int(cart.get(str(product.id), 0))
+    new_qty = current_qty + quantity
+
+    if new_qty > product.stock:
+        messages.error(
+            request,
+            (
+                f"No puedes agregar {quantity} más de {product.name}. "
+                f"En carrito tienes {current_qty} y el stock es {product.stock}."
+            ),
+        )
+        return redirect("store_home")
+
+    cart[str(product.id)] = new_qty
+    save_store_cart(request, cart)
 
     messages.success(
         request,
-        f"Pedido creado: {quantity} x {product.name}. Total: ${total_amount}.",
+        f"{product.name} x{quantity} agregado al carrito. Ahora confirma en 'Carrito'.",
     )
-    return redirect("store_home")
+    return redirect("store_cart")
+
+
+@login_required(login_url="home")
+def store_cart(request):
+    """Vista intermedia para revisar y confirmar pedido de tienda."""
+    role = get_user_role(request.user)
+    cart = get_store_cart(request)
+    cart_ctx = build_cart_context(cart)
+
+    return render(
+        request,
+        "store_cart.html",
+        {
+            "user_role": role,
+            "cart_items": cart_ctx["items"],
+            "cart_total": cart_ctx["total"],
+            "cart_total_items": cart_ctx["total_items"],
+        },
+    )
+
+
+@login_required(login_url="home")
+def remove_store_cart_item(request, product_id):
+    """Elimina un producto del carrito de tienda."""
+    if request.method != "POST":
+        return redirect("store_cart")
+
+    cart = get_store_cart(request)
+    removed = cart.pop(str(product_id), None)
+    save_store_cart(request, cart)
+
+    if removed is not None:
+        messages.success(request, "Producto eliminado del carrito.")
+    return redirect("store_cart")
+
+
+@login_required(login_url="home")
+def checkout_store_cart(request):
+    """Confirma el carrito y crea pedidos en el modulo principal (Order)."""
+    if request.method != "POST":
+        return redirect("store_cart")
+
+    cart = get_store_cart(request)
+    cart_ctx = build_cart_context(cart)
+    items = cart_ctx["items"]
+    if not items:
+        messages.error(request, "Tu carrito está vacío.")
+        return redirect("store_cart")
+
+    customer = get_or_create_customer_for_user(request.user)
+    created_orders = 0
+    total_amount = Decimal("0.00")
+
+    with transaction.atomic():
+        for item in items:
+            product = Product.objects.select_for_update().get(id=item["product"].id)
+            quantity = item["quantity"]
+
+            if quantity > product.stock:
+                messages.error(
+                    request,
+                    (
+                        f"Stock insuficiente para {product.name}. "
+                        f"Disponible: {product.stock}."
+                    ),
+                )
+                return redirect("store_cart")
+
+            subtotal = product.price * quantity
+            Order.objects.create(
+                customer=customer,
+                assigned_seller=None,
+                created_by=request.user,
+                channel="TIENDA",
+                description=(
+                    f"[TIENDA] {product.name} x{quantity} "
+                    f"(precio unitario ${product.price})"
+                ),
+                total_amount=subtotal,
+                status="Pendiente",
+            )
+
+            product.stock -= quantity
+            product.save(update_fields=["stock"])
+
+            created_orders += 1
+            total_amount += subtotal
+
+    save_store_cart(request, {})
+    messages.success(
+        request,
+        (
+            f"Pedido confirmado. Se crearon {created_orders} pedidos en el módulo "
+            f"principal por un total de ${total_amount}."
+        ),
+    )
+    return redirect("list_orders")

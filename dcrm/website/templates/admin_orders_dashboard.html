@@ -141,9 +141,9 @@
                     <thead class="table-light">
                         <tr>
                             <th>ID</th>
-                            <th>Usuario</th>
-                            <th>Producto</th>
-                            <th>Cantidad</th>
+                            <th>Usuario Creador</th>
+                            <th>Cliente</th>
+                            <th>Detalle</th>
                             <th>Total</th>
                             <th>Estado</th>
                             <th>Fecha</th>
@@ -153,16 +153,16 @@
                         {% for order in store_orders %}
                         <tr>
                             <td>#{{ order.id }}</td>
-                            <td>{{ order.user.username }}</td>
-                            <td>{{ order.product.name }}</td>
-                            <td>{{ order.quantity }}</td>
+                            <td>{% if order.created_by %}{{ order.created_by.username }}{% else %}<span class="text-muted">N/A</span>{% endif %}</td>
+                            <td>{{ order.customer.first_name }} {{ order.customer.last_name }}</td>
+                            <td>{{ order.description|truncatechars:45 }}</td>
                             <td>${{ order.total_amount }}</td>
                             <td>{{ order.status }}</td>
                             <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-3">No hay pedidos de tienda registrados.</td>
+                            <td colspan="7" class="text-center text-muted py-3">No hay pedidos de tienda registrados en el modulo principal.</td>
                         </tr>
                         {% endfor %}
                     </tbody>

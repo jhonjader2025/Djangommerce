@@ -57,6 +57,11 @@ class Order(models.Model):
         ("Cancelado", "Cancelado"),
     ]
 
+    CHANNEL_CHOICES = [
+        ("CRM", "CRM"),
+        ("TIENDA", "Tienda"),
+    ]
+
     # RELACIÓN: Cada pedido pertenece a un cliente (Record).
     # Como Record está en este mismo archivo, Django lo reconoce directamente.
     # Usamos models.PROTECT por seguridad: si intentan borrar un cliente con pedidos,
@@ -73,6 +78,22 @@ class Order(models.Model):
         blank=True,
         related_name="assigned_crm_orders",
         verbose_name="Vendedor Asignado",
+    )
+
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_orders",
+        verbose_name="Creado Por",
+    )
+
+    channel = models.CharField(
+        max_length=10,
+        choices=CHANNEL_CHOICES,
+        default="CRM",
+        verbose_name="Canal",
     )
 
     # CAMPOS DE DETALLE
@@ -112,6 +133,7 @@ class Product(models.Model):
 
     name = models.CharField(max_length=120, unique=True)
     description = models.TextField(max_length=300, blank=True)
+    image_url = models.URLField(max_length=500, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)

@@ -5,14 +5,15 @@ from .views import can_manage_records, get_user_role
 
 
 class OrdersTemplateTests(SimpleTestCase):
-    def test_orders_template_renders_with_create_order_link(self):
+    def test_orders_template_renders_admin_panel_link(self):
         request = RequestFactory().get("/pedidos/")
 
         rendered = render_to_string(
             "orders.html", {"orders": [], "user_role": "admin"}, request=request
         )
 
-        self.assertIn("Registrar Nuevo Pedido", rendered)
+        self.assertIn("Panel Admin", rendered)
+        self.assertNotIn("Registrar Nuevo Pedido", rendered)
 
 
 class RoleHelperTests(SimpleTestCase):
