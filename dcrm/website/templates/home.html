@@ -86,12 +86,20 @@
         <div class="row align-items-center mb-4">
             <div class="col-md-8">
                 <h1 class="h3 font-weight-bold text-dark mb-1">Bienvenido al Sistema, {{ user.username }}</h1>
-                <p class="text-muted small mb-0">Gestión activa de registros del sistema y operaciones comerciales.</p>
+                <p class="text-muted small mb-0">Rol actual: <strong>{{ user_role|title }}</strong>. Gestión activa de registros del sistema y operaciones comerciales.</p>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
                 <a href="{% url 'list_orders' %}" class="btn btn-dark btn-sm px-3 shadow-sm me-2">
                      Ver Pedidos
                 </a>
+                <a href="{% url 'store_home' %}" class="btn btn-success btn-sm px-3 me-2">
+                    Ir a Tienda
+                </a>
+                {% if user_role == 'admin' or user_role == 'vendedor' %}
+                <a href="{% url 'create_order' %}" class="btn btn-outline-dark btn-sm px-3 me-2">
+                    Nuevo Pedido
+                </a>
+                {% endif %}
                 <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm px-3">
                     Cerrar Sesión
                 </a>

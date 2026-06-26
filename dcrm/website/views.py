@@ -14,6 +14,7 @@ from django.core.paginator import Paginator  # type: ignore # Importamos la clas
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from decimal import Decimal
 
 # SEGURIDAD: Importamos el decorador para obligar a que el usuario esté autenticado
 from django.contrib.auth.decorators import login_required
@@ -22,7 +23,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 
 # Importamos el modelo y el formulario que cree
-from .models import Order
+from .models import Order, Product, ProductOrder
 from .forms import OrderForm
 
 
@@ -43,6 +44,48 @@ def get_user_role(user):
 def can_manage_records(role):
     """Define qué roles pueden crear o modificar registros de clientes y pedidos."""
     return role in {"admin", "vendedor"}
+
+
+def create_sample_products():
+    """Carga productos base (frutas) para la tienda si aún no existen."""
+    if Product.objects.exists():
+        return
+
+    fruits = [
+        {
+            "name": "Manzana Roja",
+            "description": "Fruta fresca por unidad",
+            "price": Decimal("1.50"),
+            "stock": 200,
+        },
+        {
+            "name": "Banano",
+            "description": "Banano maduro de alta calidad",
+            "price": Decimal("0.80"),
+            "stock": 250,
+        },
+        {
+            "name": "Naranja",
+            "description": "Naranja dulce para jugo",
+            "price": Decimal("1.10"),
+            "stock": 220,
+        },
+        {
+            "name": "Fresa",
+            "description": "Caja de fresas frescas",
+            "price": Decimal("2.90"),
+            "stock": 120,
+        },
+        {
+            "name": "Piña",
+            "description": "Piña tropical entera",
+            "price": Decimal("3.20"),
+            "stock": 80,
+        },
+    ]
+
+    for product_data in fruits:
+        Product.objects.create(**product_data)
 
 
 def create_sample_records():
@@ -337,3 +380,64 @@ def create_order(request):
         form = OrderForm()
 
     return render(request, "add_order.html", {"form": form, "user_role": role})
+
+
+@login_required(login_url="home")
+def store_home(request):
+    """Muestra el catálogo de tienda y los pedidos del usuario autenticado."""
+    create_sample_products()
+    products = Product.objects.filter(is_active=True).order_by("name")
+    my_orders = ProductOrder.objects.filter(user=request.user).order_by("-created_at")[:8]
+
+    return render(
+        request,
+        "store.html",
+        {
+            "products": products,
+            "my_orders": my_orders,
+            "user_role": get_user_role(request.user),
+        },
+    )
+
+
+@login_required(login_url="home")
+def create_store_order(request, product_id):
+    """Crea un pedido de tienda para el usuario autenticado."""
+    if request.method != "POST":
+        return redirect("store_home")
+
+    product = get_object_or_404(Product, id=product_id, is_active=True)
+    quantity_raw = request.POST.get("quantity", "1").strip()
+
+    if not quantity_raw.isdigit():
+        messages.error(request, "La cantidad debe ser un número válido.")
+        return redirect("store_home")
+
+    quantity = int(quantity_raw)
+    if quantity < 1:
+        messages.error(request, "La cantidad mínima para pedir es 1.")
+        return redirect("store_home")
+
+    if quantity > product.stock:
+        messages.error(
+            request,
+            f"No hay stock suficiente para {product.name}. Stock disponible: {product.stock}.",
+        )
+        return redirect("store_home")
+
+    total_amount = product.price * quantity
+    ProductOrder.objects.create(
+        user=request.user,
+        product=product,
+        quantity=quantity,
+        unit_price=product.price,
+        total_amount=total_amount,
+    )
+    product.stock -= quantity
+    product.save(update_fields=["stock"])
+
+    messages.success(
+        request,
+        f"Pedido creado: {quantity} x {product.name}. Total: ${total_amount}.",
+    )
+    return redirect("store_home")

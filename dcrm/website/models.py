@@ -95,3 +95,42 @@ class Order(models.Model):
     def __str__(self):
         # Retorna una representación legible para auditorías y administración
         return f"Pedido #{self.id} - {self.customer.first_name} {self.customer.last_name} ({self.status})"
+
+
+class Product(models.Model):
+    """Productos para el módulo de tienda (catálogo simple)."""
+
+    name = models.CharField(max_length=120, unique=True)
+    description = models.TextField(max_length=300, blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    stock = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} - ${self.price}"
+
+
+class ProductOrder(models.Model):
+    """Pedido de tienda realizado por un usuario autenticado."""
+
+    STATUS_CHOICES = [
+        ("Pendiente", "Pendiente"),
+        ("Pagado", "Pagado"),
+        ("Entregado", "Entregado"),
+        ("Cancelado", "Cancelado"),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="store_orders")
+    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="orders")
+    quantity = models.PositiveIntegerField(default=1)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pendiente")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return (
+            f"Pedido Tienda #{self.id} - {self.user.username} - "
+            f"{self.product.name} x{self.quantity}"
+        )

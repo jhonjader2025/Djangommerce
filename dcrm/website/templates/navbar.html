@@ -81,6 +81,12 @@
             </a>
           </li>
 
+          <li class="nav-item">
+            <a class="nav-link nav-link-tech" href="{% url 'store_home' %}">
+              <span>Tienda</span> 🍎
+            </a>
+          </li>
+
           {% if user_role == 'admin' or user_role == 'vendedor' %}
           <li class="nav-item">
             <a class="nav-link nav-link-tech" href="{% url 'create_order' %}">
