@@ -2,16 +2,17 @@
 
 ## 1. Qué hace este sistema
 
-Este proyecto es una aplicación web sencilla hecha con Django para gestionar registros de clientes. La idea principal es permitir:
+Este proyecto es una aplicación web hecha con Django para gestionar registros de clientes y, en su estado actual, también un módulo básico de pedidos. La idea principal es permitir:
 
 - registrar usuarios del sistema,
 - iniciar sesión y cerrar sesión,
 - ver una lista de clientes/records,
 - ver detalles de un registro,
 - actualizar y eliminar registros,
+- listar y crear pedidos relacionados con un cliente,
 - navegar con paginación.
 
-En su estado actual, no existe todavía un módulo de pedidos. El sistema está orientado a CRM básico (clientes), y el módulo de pedidos deberá integrarse sobre esa base.
+El módulo de pedidos ya está integrado de forma básica y se puede usar desde la interfaz una vez que el usuario ha iniciado sesión.
 
 ---
 
@@ -40,6 +41,7 @@ Aplicación principal:
 - [dcrm/website/forms.py](dcrm/website/forms.py): formularios.
 - [dcrm/website/urls.py](dcrm/website/urls.py): rutas internas de la app.
 - [dcrm/website/templates](dcrm/website/templates): plantillas HTML.
+- [dcrm/website/tests.py](dcrm/website/tests.py): pruebas básicas.
 
 ---
 
@@ -53,11 +55,13 @@ El sistema sigue el patrón MVC clásico de Django:
 - URLs: conectan rutas con vistas.
 - Forms: validan y procesan datos del usuario.
 
-Actualmente, la lógica está concentrada en la app llamada website, que maneja tanto autenticación como gestión de clientes.
+Actualmente, la lógica está concentrada en la app llamada website, que maneja autenticación, clientes y pedidos.
 
 ---
 
 ## 5. Modelo de datos actual
+
+### 5.1 Modelo Record
 
 El modelo principal es Record, definido en [dcrm/website/models.py](dcrm/website/models.py).
 
@@ -74,6 +78,19 @@ Campos:
 - zip_code: código postal
 
 Este modelo representa a un cliente o contacto del sistema.
+
+### 5.2 Modelo Order
+
+El módulo de pedidos usa el modelo Order, también en [dcrm/website/models.py](dcrm/website/models.py).
+
+Campos:
+
+- customer: relación con Record
+- description: detalle del pedido
+- total_amount: monto total
+- status: estado del pedido
+- created_at: fecha automática de creación
+- updated_at: fecha automática de actualización
 
 ### Importante
 
@@ -125,7 +142,46 @@ Ambas vistas están protegidas para que solo usuarios autenticados puedan ejecut
 
 ---
 
-## 7. Rutas actuales
+## 7. Lógica del módulo de pedidos
+
+### 7.1 Qué hace
+
+El módulo de pedidos ya implementa lo siguiente:
+
+- listar pedidos paginados,
+- crear un nuevo pedido desde un formulario,
+- asociar el pedido a un cliente existente,
+- guardar el estado y monto del pedido,
+- redirigir al listado después de crear un pedido.
+
+### 7.2 Vistas relacionadas
+
+- `list_orders(request)`: recupera todos los pedidos ordenados por fecha descendente y los muestra con paginación.
+- `create_order(request)`: si llega por GET, muestra el formulario; si llega por POST, valida y guarda el pedido.
+
+### 7.3 Formularios
+
+El formulario de pedidos está en [dcrm/website/forms.py](dcrm/website/forms.py) y contiene:
+
+- cliente (`customer`)
+- descripción (`description`)
+- monto total (`total_amount`)
+- estado (`status`)
+
+La lógica de validación asegura que el monto sea mayor a cero.
+
+### 7.4 Plantillas
+
+- [dcrm/website/templates/orders.html](dcrm/website/templates/orders.html): muestra la tabla con los pedidos.
+- [dcrm/website/templates/add_order.html](dcrm/website/templates/add_order.html): muestra el formulario para registrar un pedido.
+
+### 7.5 Protección
+
+El módulo está protegido con `@login_required(login_url="home")`, por lo que si el usuario no está autenticado se le redirige a la home.
+
+---
+
+## 8. Rutas actuales
 
 En [dcrm/website/urls.py](dcrm/website/urls.py) están definidas estas rutas:
 
@@ -136,12 +192,15 @@ En [dcrm/website/urls.py](dcrm/website/urls.py) están definidas estas rutas:
 - 'record/<str:pk>': customer_record
 - 'delete-record/<str:pk>': delete_record
 - 'update-record/<str:pk>': update_record
+- 'pedidos/': list_orders
+- 'crear-pedido/': create_order
+- 'pedidos/crear/': create_order
 
 La ruta raíz está conectada desde [dcrm/dcrm/urls.py](dcrm/dcrm/urls.py).
 
 ---
 
-## 8. Vistas y responsabilidades
+## 9. Vistas y responsabilidades
 
 ### home(request)
 
@@ -175,20 +234,29 @@ Edita un Record existente.
 
 Muestra un detalle del cliente.
 
+### list_orders(request)
+
+Muestra todos los pedidos, paginados y ordenados por fecha de creación.
+
+### create_order(request)
+
+Muestra o procesa el formulario de creación de pedidos.
+
 ---
 
-## 9. Formularios
+## 10. Formularios
 
 Los formularios principales están en [dcrm/website/forms.py](dcrm/website/forms.py).
 
 - UserRegisterForm: para crear usuarios del sistema.
 - RecordForm: para crear o editar registros de clientes.
+- OrderForm: para crear o editar pedidos.
 
-Estos formularios validan datos como correo, nombre y contraseña.
+Estos formularios validan datos como correo, nombre, contraseña y monto del pedido.
 
 ---
 
-## 10. Templates y frontend
+## 11. Templates y frontend
 
 La interfaz está en [dcrm/website/templates](dcrm/website/templates), con archivos como:
 
@@ -197,15 +265,12 @@ La interfaz está en [dcrm/website/templates](dcrm/website/templates), con archi
 - register.html: formulario de registro.
 - record.html: detalle de un cliente.
 - update_record.html: formulario de edición.
-
-La vista home tiene un diseño con dos secciones:
-
-- una para login o bienvenida,
-- otra para listar registros si el usuario ya inició sesión.
+- orders.html: listado de pedidos.
+- add_order.html: formulario de registro de pedidos.
 
 ---
 
-## 11. Base de datos y configuración
+## 12. Base de datos y configuración
 
 La configuración de la base de datos está en [dcrm/dcrm/settings.py](dcrm/dcrm/settings.py).
 
@@ -221,73 +286,23 @@ Resultado: sin errores.
 
 ---
 
-## 12. Puntos importantes para entender el sistema
+## 13. Puntos importantes para entender el sistema
 
 - El sistema está pensado como un CRM simple, no como una plataforma compleja.
 - La autenticación ya está integrada con Django y funciona a nivel de usuario.
 - La app website es el núcleo del proyecto y concentra muchas responsabilidades.
 - El modelo Record es la entidad de clientes y será la base natural para otros módulos.
-- El login no está en una vista separada; se procesa desde home.
+- El módulo de pedidos funciona sobre esa base y está protegido por login.
 
 ---
 
-## 13. Cómo debería integrarse el módulo de pedidos
+## 14. Cambios recientes aplicados al módulo de pedidos
 
-Para implementar pedidos, lo más limpio sería pensar en el sistema así:
-
-### Opción recomendada
-
-Crear un nuevo módulo o app llamada orders que tenga:
-
-- un modelo Order para representar un pedido,
-- un modelo OrderItem si se necesita detalle por producto,
-- vistas para listar, crear, ver y editar pedidos,
-- templates para la interfaz,
-- rutas propias.
-
-### Relación con el modelo actual
-
-El modelo Record (cliente) puede servir como relación para un pedido. Por ejemplo:
-
-- un pedido pertenece a un cliente (Record)
-- un cliente puede tener muchos pedidos
-
-Eso permitiría que cada pedido esté asociado a un usuario/cliente existente.
-
-### Recomendación de diseño
-
-Modelo Order:
-
-- customer: relación con Record
-- created_at: fecha
-- status: estado del pedido
-- total: total del pedido
-- notes: observaciones
-
-Modelo OrderItem:
-
-- order: relación con Order
-- product_name: nombre del producto
-- quantity: cantidad
-- price: precio unitario
-
-### Integración con la autenticación actual
-
-El módulo de pedidos debería reutilizar el sistema de login y sesiones ya existente. Un usuario autenticado debería poder crear y ver pedidos.
-
-### Lugar donde conectar la nueva UI
-
-La pantalla principal home podría ampliarse para mostrar también un acceso a pedidos, o se podría crear una ruta nueva como /pedidos/.
-
----
-
-## 14. Recomendaciones para los desarrolladores que vayan a trabajar el módulo
-
-1. Entender primero el modelo Record y la lógica de autenticación.
-2. Mantener el estilo actual de las vistas y plantillas.
-3. No duplicar lógica de login; reutilizar la sesión existente.
-4. Si el módulo será grande, conviene separarlo en una app nueva para mantener orden.
-5. Para futuras mejoras, sería recomendable migrar a una arquitectura más limpia con apps específicas como customers, orders, users, etc.
+- Se agregó el modelo `Order`.
+- Se añadieron las vistas `list_orders` y `create_order`.
+- Se añadieron las plantillas `orders.html` y `add_order.html`.
+- Se corrigió el vínculo del botón para que apunte a la URL correcta.
+- Se añadió una prueba simple para verificar el render del listado de pedidos.
 
 ---
 
@@ -305,4 +320,4 @@ La pantalla principal home podría ampliarse para mostrar también un acceso a p
 
 ## 16. Resumen corto para pasar a otros devs
 
-Este proyecto es un CRM básico en Django para gestionar clientes. Ya tiene autenticación de usuarios, listado y CRUD de registros, paginación y una base de datos MySQL. El punto de entrada principal es la vista home, que también maneja el login. El módulo de pedidos debería integrarse como una nueva funcionalidad sobre el modelo Record y reutilizando el sistema de autenticación actual.
+Este proyecto es un CRM básico en Django para gestionar clientes. Ya tiene autenticación de usuarios, listado y CRUD de registros, paginación y una base de datos MySQL. Además, ahora cuenta con un módulo de pedidos básico que permite listar y crear pedidos asociados a clientes, todo protegido por login y validado en el backend.
