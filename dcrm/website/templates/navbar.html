@@ -95,6 +95,14 @@
           </li>
           {% endif %}
 
+          {% if user_role == 'admin' %}
+          <li class="nav-item">
+            <a class="nav-link nav-link-tech" href="{% url 'admin_orders_dashboard' %}">
+              <span>Panel Admin</span> 🧭
+            </a>
+          </li>
+          {% endif %}
+
           <li class="nav-item">
             <a class="nav-link nav-link-tech nav-link-danger-tech" href="{% url 'logout' %}">
               <span>Cerrar Usuario</span> ❌

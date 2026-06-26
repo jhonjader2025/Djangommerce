@@ -15,6 +15,9 @@ urlpatterns = [  # type: ignore
     path("crear-pedido/", views.create_order, name="create_order"),
     # Ruta para procesar y mostrar el formulario de creación de pedidos
     path("pedidos/crear/", views.create_order, name="create_order"),
+    path("pedidos/editar/<int:order_id>/", views.update_order, name="update_order"),
+    path("pedidos/eliminar/<int:order_id>/", views.delete_order, name="delete_order"),
+    path("admin/pedidos/", views.admin_orders_dashboard, name="admin_orders_dashboard"),
     # Módulo tienda: catálogo y pedidos por usuario autenticado
     path("tienda/", views.store_home, name="store_home"),
     path("tienda/pedir/<int:product_id>/", views.create_store_order, name="create_store_order"),

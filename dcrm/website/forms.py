@@ -201,3 +201,29 @@ class OrderForm(forms.ModelForm):
                 "Por seguridad, el monto total del pedido debe ser mayor a 0."
             )
         return total
+
+
+class OrderAdminForm(OrderForm):
+    """Formulario para administración total de pedidos (incluye reasignación)."""
+
+    assigned_seller = forms.ModelChoiceField(
+        queryset=User.objects.none(),
+        required=False,
+        label="Vendedor Asignado",
+        widget=forms.Select(attrs={"class": "form-control"}),
+    )
+
+    class Meta(OrderForm.Meta):
+        fields = [
+            "customer",
+            "assigned_seller",
+            "description",
+            "total_amount",
+            "status",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["assigned_seller"].queryset = User.objects.filter(
+            profile__role__in=["vendedor", "admin"]
+        ).order_by("username")

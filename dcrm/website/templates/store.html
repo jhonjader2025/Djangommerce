@@ -41,7 +41,7 @@
 
     <div class="card shadow-sm border-0 mt-4">
         <div class="card-header bg-white">
-            <h5 class="mb-0">Mis ultimos pedidos de tienda</h5>
+            <h5 class="mb-0">{% if user_role == 'admin' %}Ultimos pedidos globales de tienda{% else %}Mis ultimos pedidos de tienda{% endif %}</h5>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">

@@ -7,11 +7,11 @@
             
             <div class="card shadow">
                 <div class="card-header bg-dark text-white text-center">
-                    <h4 class="mb-0">📦 Registrar Nuevo Pedido</h4>
+                    <h4 class="mb-0">{% if is_edit_mode %}🛠️ Editar Pedido CRM{% else %}📦 Registrar Nuevo Pedido{% endif %}</h4>
                 </div>
                 <div class="card-body p-4">
                     
-                    <form method="POST" action="{% url 'create_order' %}">
+                    <form method="POST" action="{% if is_edit_mode %}{% url 'update_order' order_id %}{% else %}{% url 'create_order' %}{% endif %}">
                         
                         {% csrf_token %}
 
@@ -35,7 +35,7 @@
                                 <i class="fa fa-arrow-left"></i> Volver
                             </a>
                             <button type="submit" class="btn btn-success">
-                                <i class="fa fa-save"></i> Guardar Pedido
+                                <i class="fa fa-save"></i> {% if is_edit_mode %}Guardar Cambios{% else %}Guardar Pedido{% endif %}
                             </button>
                         </div>
 

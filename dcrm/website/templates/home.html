@@ -100,6 +100,11 @@
                     Nuevo Pedido
                 </a>
                 {% endif %}
+                {% if user_role == 'admin' %}
+                <a href="{% url 'admin_orders_dashboard' %}" class="btn btn-primary btn-sm px-3 me-2">
+                    Panel Admin
+                </a>
+                {% endif %}
                 <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm px-3">
                     Cerrar Sesión
                 </a>
@@ -130,7 +135,7 @@
                             {% if records %}
                                 {% for record in records %}
                                     <tr>
-                                        <td class="text-center text-muted fw-bold">{{ forloop.counter }}</td>
+                                        <td class="text-center text-muted fw-bold">{{ records.start_index|add:forloop.counter0 }}</td>
                                         <td>
                                             <a href="{% url 'customer_record' record.id %}" class="badge bg-light text-dark border text-decoration-none">
                                                 ID: {{ record.id }} 🔍
@@ -138,7 +143,7 @@
                                         </td>
                                         <td><strong>{{ record.first_name }} {{ record.last_name }}</strong></td>
                                         <td>{{ record.email }}</td>
-                                        <td>{{ record.phone }}</td>
+                                        <td>{{ record.phone_number }}</td>
                                         <td>{{ record.address }}</td>
                                         <td>{{ record.city }}, {{ record.state }}</td>
                                         <td><span class="font-monospace text-muted">{{ record.zip_code }}</span></td>
@@ -150,7 +155,7 @@
                                     <td colspan="9" class="text-center text-muted py-5">
                                         <p class="mb-0">⚠️ No hay registros de clientes disponibles en la base de datos.</p>
                                     </td>
-                                endfor %}
+                                </tr>
                             {% endif %}
                         </tbody>
                     </table>
@@ -159,6 +164,9 @@
         </div>
 
         {% if records.has_other_pages %}
+        <div class="text-center text-muted small mt-3">
+            Página {{ records.number }} de {{ records.paginator.num_pages }}
+        </div>
         <nav aria-label="Paginación de registros" class="mt-4">
             <ul class="pagination pagination-sm justify-content-center">
                 {% if records.has_previous %}

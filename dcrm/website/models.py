@@ -65,6 +65,16 @@ class Order(models.Model):
         Record, on_delete=models.PROTECT, verbose_name="Cliente"
     )
 
+    # Reasignación administrativa del pedido a un vendedor responsable
+    assigned_seller = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_crm_orders",
+        verbose_name="Vendedor Asignado",
+    )
+
     # CAMPOS DE DETALLE
     description = models.TextField(
         max_length=500, verbose_name="Descripción del Pedido/Productos"

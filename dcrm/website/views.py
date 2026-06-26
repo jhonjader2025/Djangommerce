@@ -15,6 +15,7 @@ from django.core.paginator import Paginator  # type: ignore # Importamos la clas
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from decimal import Decimal
+from django.db.models import Count, Sum
 
 # SEGURIDAD: Importamos el decorador para obligar a que el usuario esté autenticado
 from django.contrib.auth.decorators import login_required
@@ -24,7 +25,7 @@ from django.core.paginator import Paginator
 
 # Importamos el modelo y el formulario que cree
 from .models import Order, Product, ProductOrder
-from .forms import OrderForm
+from .forms import OrderForm, OrderAdminForm
 
 
 def get_user_role(user):
@@ -44,6 +45,10 @@ def get_user_role(user):
 def can_manage_records(role):
     """Define qué roles pueden crear o modificar registros de clientes y pedidos."""
     return role in {"admin", "vendedor"}
+
+
+def is_admin(role):
+    return role == "admin"
 
 
 def create_sample_products():
@@ -366,7 +371,9 @@ def create_order(request):
 
         # Validamos que los datos sean correctos y que pasen los filtros de seguridad (ej. monto > 0)
         if form.is_valid():
-            form.save()  # Guarda de forma segura en MySQL
+            order = form.save(commit=False)
+            order.assigned_seller = request.user
+            order.save()
             messages.success(request, "¡Pedido registrado exitosamente en el sistema!")
             return redirect("list_orders")  # Redirige al listado general de pedidos
         else:
@@ -383,11 +390,113 @@ def create_order(request):
 
 
 @login_required(login_url="home")
+def update_order(request, order_id):
+    """Edición administrativa completa de pedidos CRM."""
+    role = get_user_role(request.user)
+    if not is_admin(role):
+        messages.error(request, "Solo el administrador puede editar pedidos CRM.")
+        return redirect("list_orders")
+
+    order = get_object_or_404(Order, id=order_id)
+    if request.method == "POST":
+        form = OrderAdminForm(request.POST, instance=order)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Pedido actualizado correctamente por administración.")
+            return redirect("admin_orders_dashboard")
+    else:
+        form = OrderAdminForm(instance=order)
+
+    return render(
+        request,
+        "add_order.html",
+        {
+            "form": form,
+            "user_role": role,
+            "is_edit_mode": True,
+            "order_id": order.id,
+        },
+    )
+
+
+@login_required(login_url="home")
+def delete_order(request, order_id):
+    """Eliminación administrativa de pedidos CRM."""
+    role = get_user_role(request.user)
+    if not is_admin(role):
+        messages.error(request, "Solo el administrador puede eliminar pedidos CRM.")
+        return redirect("list_orders")
+
+    order = get_object_or_404(Order, id=order_id)
+    order.delete()
+    messages.success(request, "Pedido CRM eliminado correctamente.")
+    return redirect("admin_orders_dashboard")
+
+
+@login_required(login_url="home")
+def admin_orders_dashboard(request):
+    """Panel administrador con resumen global de pedidos CRM y tienda."""
+    role = get_user_role(request.user)
+    if not is_admin(role):
+        messages.error(request, "Este panel es solo para administradores.")
+        return redirect("home")
+
+    crm_orders_qs = Order.objects.select_related("customer", "assigned_seller").order_by(
+        "-created_at"
+    )
+    store_orders_qs = ProductOrder.objects.select_related("user", "product").order_by(
+        "-created_at"
+    )
+
+    crm_total_sales = crm_orders_qs.aggregate(total=Sum("total_amount"))["total"] or 0
+    store_total_sales = (
+        store_orders_qs.aggregate(total=Sum("total_amount"))["total"] or 0
+    )
+
+    crm_by_status = crm_orders_qs.values("status").annotate(total=Count("id")).order_by(
+        "status"
+    )
+    store_by_status = (
+        store_orders_qs.values("status").annotate(total=Count("id")).order_by("status")
+    )
+
+    crm_paginator = Paginator(crm_orders_qs, 10)
+    crm_page_number = request.GET.get("crm_page")
+    crm_orders = crm_paginator.get_page(crm_page_number)
+
+    store_paginator = Paginator(store_orders_qs, 10)
+    store_page_number = request.GET.get("store_page")
+    store_orders = store_paginator.get_page(store_page_number)
+
+    return render(
+        request,
+        "admin_orders_dashboard.html",
+        {
+            "user_role": role,
+            "crm_orders": crm_orders,
+            "store_orders": store_orders,
+            "crm_total_sales": crm_total_sales,
+            "store_total_sales": store_total_sales,
+            "crm_by_status": crm_by_status,
+            "store_by_status": store_by_status,
+        },
+    )
+
+
+@login_required(login_url="home")
 def store_home(request):
     """Muestra el catálogo de tienda y los pedidos del usuario autenticado."""
     create_sample_products()
+    role = get_user_role(request.user)
     products = Product.objects.filter(is_active=True).order_by("name")
-    my_orders = ProductOrder.objects.filter(user=request.user).order_by("-created_at")[:8]
+    if is_admin(role):
+        my_orders = ProductOrder.objects.select_related("user", "product").order_by(
+            "-created_at"
+        )[:20]
+    else:
+        my_orders = ProductOrder.objects.filter(user=request.user).select_related(
+            "product"
+        ).order_by("-created_at")[:8]
 
     return render(
         request,
@@ -395,7 +504,7 @@ def store_home(request):
         {
             "products": products,
             "my_orders": my_orders,
-            "user_role": get_user_role(request.user),
+            "user_role": role,
         },
     )
 

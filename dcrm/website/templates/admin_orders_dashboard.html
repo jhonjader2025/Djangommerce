@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Panel Administrativo de Pedidos</h2>
+            <p class="text-muted mb-0">Control total de pedidos CRM y tienda.</p>
+        </div>
+        <a href="{% url 'list_orders' %}" class="btn btn-outline-dark">Volver a Pedidos</a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Ventas Totales CRM</h6>
+                    <h3 class="mb-0">${{ crm_total_sales }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Ventas Totales Tienda</h6>
+                    <h3 class="mb-0">${{ store_total_sales }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white"><strong>Pedidos CRM por Estado</strong></div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for row in crm_by_status %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>{{ row.status }}</span>
+                            <span class="badge bg-dark">{{ row.total }}</span>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-muted">Sin datos</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white"><strong>Pedidos Tienda por Estado</strong></div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for row in store_by_status %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>{{ row.status }}</span>
+                            <span class="badge bg-secondary">{{ row.total }}</span>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-muted">Sin datos</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <strong>Pedidos CRM</strong>
+            <small class="text-muted">Página {{ crm_orders.number }} de {{ crm_orders.paginator.num_pages }}</small>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Vendedor</th>
+                            <th>Descripción</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in crm_orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.customer.first_name }} {{ order.customer.last_name }}</td>
+                            <td>{% if order.assigned_seller %}{{ order.assigned_seller.username }}{% else %}<span class="text-muted">Sin asignar</span>{% endif %}</td>
+                            <td>{{ order.description|truncatechars:45 }}</td>
+                            <td>${{ order.total_amount }}</td>
+                            <td>{{ order.status }}</td>
+                            <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <a href="{% url 'update_order' order.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                                <a href="{% url 'delete_order' order.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar este pedido?');">Eliminar</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-3">No hay pedidos CRM registrados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% if crm_orders.has_other_pages %}
+        <div class="card-footer bg-white">
+            <nav aria-label="Paginacion CRM">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    {% if crm_orders.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?crm_page={{ crm_orders.previous_page_number }}&store_page={{ store_orders.number }}">Anterior</a></li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+                    {% endif %}
+                    {% if crm_orders.has_next %}
+                    <li class="page-item"><a class="page-link" href="?crm_page={{ crm_orders.next_page_number }}&store_page={{ store_orders.number }}">Siguiente</a></li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <strong>Pedidos Tienda</strong>
+            <small class="text-muted">Página {{ store_orders.number }} de {{ store_orders.paginator.num_pages }}</small>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuario</th>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in store_orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.user.username }}</td>
+                            <td>{{ order.product.name }}</td>
+                            <td>{{ order.quantity }}</td>
+                            <td>${{ order.total_amount }}</td>
+                            <td>{{ order.status }}</td>
+                            <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-3">No hay pedidos de tienda registrados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% if store_orders.has_other_pages %}
+        <div class="card-footer bg-white">
+            <nav aria-label="Paginacion Tienda">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    {% if store_orders.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?crm_page={{ crm_orders.number }}&store_page={{ store_orders.previous_page_number }}">Anterior</a></li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+                    {% endif %}
+                    {% if store_orders.has_next %}
+                    <li class="page-item"><a class="page-link" href="?crm_page={{ crm_orders.number }}&store_page={{ store_orders.next_page_number }}">Siguiente</a></li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
