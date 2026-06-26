@@ -1,0 +1,10 @@
+# Framework Principal (Versión LTS compatible con MariaDB 10.4)
+Django==4.2.11
+
+# Conector de base de datos para MariaDB/MySQL (requiere compilador C)
+mysqlclient==2.2.4
+
+
+# Utilidades opcionales pero recomendadas
+python-dotenv==1.0.1
+sqlparse==0.4.4
