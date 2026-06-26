@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" role="img" aria-label="Jeans slim azul">
+  <rect width="600" height="800" rx="40" fill="#0b1f3b"/>
+  <rect x="140" y="120" width="320" height="580" rx="28" fill="#1e3a6d" stroke="#dfe8ff" stroke-width="6"/>
+  <path d="M220 120 V680 M300 120 V680" stroke="#dfe8ff" stroke-width="8" opacity="0.7"/>
+  <path d="M200 160 H400" stroke="#dfe8ff" stroke-width="8" opacity="0.7"/>
+  <text x="300" y="710" font-family="Arial, sans-serif" font-size="40" text-anchor="middle" fill="#dfe8ff">Jeans</text>
+</svg>

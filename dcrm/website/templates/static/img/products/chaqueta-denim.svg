@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" role="img" aria-label="Chaqueta denim">
+  <rect width="600" height="800" rx="40" fill="#224b7a"/>
+  <rect x="145" y="140" width="310" height="540" rx="32" fill="#35679b" stroke="#eef6ff" stroke-width="6"/>
+  <path d="M225 160 L300 250 L375 160" stroke="#eef6ff" stroke-width="10" fill="none"/>
+  <path d="M225 160 V640 M375 160 V640" stroke="#eef6ff" stroke-width="8" opacity="0.7"/>
+  <circle cx="300" cy="350" r="10" fill="#eef6ff"/>
+  <circle cx="300" cy="430" r="10" fill="#eef6ff"/>
+  <circle cx="300" cy="510" r="10" fill="#eef6ff"/>
+  <text x="300" y="710" font-family="Arial, sans-serif" font-size="40" text-anchor="middle" fill="#eef6ff">Chaqueta</text>
+</svg>

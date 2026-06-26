@@ -1,0 +1,44 @@
+@startuml
+title Casos de uso de Djangommerce
+
+left to right direction
+
+actor Usuario
+actor Vendedor
+actor Admin
+
+rectangle Djangommerce {
+  usecase "Iniciar sesion" as UC1
+  usecase "Registrar cuenta" as UC2
+  usecase "Ver clientes" as UC3
+  usecase "Crear pedido CRM" as UC4
+  usecase "Editar pedido CRM" as UC5
+  usecase "Eliminar pedido CRM" as UC6
+  usecase "Ver tienda de ropa" as UC7
+  usecase "Agregar producto al carrito" as UC8
+  usecase "Confirmar compra" as UC9
+  usecase "Crear usuario con rol" as UC10
+  usecase "Gestionar productos" as UC11
+  usecase "Ver panel admin" as UC12
+}
+
+Usuario --> UC1
+Usuario --> UC2
+Usuario --> UC7
+Usuario --> UC8
+Usuario --> UC9
+
+Vendedor --> UC1
+Vendedor --> UC3
+Vendedor --> UC4
+
+Admin --> UC1
+Admin --> UC3
+Admin --> UC4
+Admin --> UC5
+Admin --> UC6
+Admin --> UC10
+Admin --> UC11
+Admin --> UC12
+
+@enduml

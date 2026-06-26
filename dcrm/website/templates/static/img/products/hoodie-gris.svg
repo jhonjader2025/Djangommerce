@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" role="img" aria-label="Hoodie gris">
+  <rect width="600" height="800" rx="40" fill="#6b7280"/>
+  <rect x="130" y="160" width="340" height="500" rx="42" fill="#9ca3af" stroke="#f9fafb" stroke-width="6"/>
+  <path d="M210 160 C220 100, 380 100, 390 160" fill="none" stroke="#f9fafb" stroke-width="16"/>
+  <path d="M245 210 C245 180, 355 180, 355 210" fill="none" stroke="#f9fafb" stroke-width="10"/>
+  <path d="M245 210 L210 300 H180" stroke="#f9fafb" stroke-width="10" fill="none"/>
+  <path d="M355 210 L390 300 H420" stroke="#f9fafb" stroke-width="10" fill="none"/>
+  <text x="300" y="710" font-family="Arial, sans-serif" font-size="40" text-anchor="middle" fill="#f9fafb">Hoodie</text>
+</svg>

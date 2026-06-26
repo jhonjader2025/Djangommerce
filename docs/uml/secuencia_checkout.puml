@@ -1,0 +1,20 @@
+@startuml
+title Secuencia de compra en tienda
+
+actor Usuario
+participant "Vista tienda" as StoreView
+participant "Carrito de sesion" as Cart
+participant "Vista checkout" as Checkout
+participant "Modelo Order" as Order
+database MySQL
+
+Usuario -> StoreView : Agrega producto al carrito
+StoreView -> Cart : guardar producto y cantidad
+Usuario -> Checkout : confirmar compra
+Checkout -> Cart : leer items
+Checkout -> Order : crear pedido canal TIENDA
+Order -> MySQL : guardar registro
+Checkout -> Cart : vaciar carrito
+Checkout --> Usuario : mostrar confirmacion
+
+@enduml

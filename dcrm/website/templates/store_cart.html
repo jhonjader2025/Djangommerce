@@ -1,6 +1,15 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+    .ui-icon {
+        width: 14px;
+        height: 14px;
+        display: inline-block;
+        vertical-align: -2px;
+        fill: currentColor;
+    }
+</style>
 <div class="container mt-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
         <div>
@@ -53,7 +62,10 @@
             </div>
             <form method="post" action="{% url 'checkout_store_cart' %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-success" {% if not cart_items %}disabled{% endif %}>Realizar pedido</button>
+                <button type="submit" class="btn btn-success d-inline-flex align-items-center gap-1" {% if not cart_items %}disabled{% endif %}>
+                    <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14l-1.5 9h-11L5 4zm2 11h10l1 5H6l1-5zm2 2v1h2v-1H9zm4 0v1h2v-1h-2z"/></svg>
+                    Realizar pedido
+                </button>
             </form>
         </div>
     </div>

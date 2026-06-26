@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="container mt-4">
@@ -18,7 +19,7 @@
         <div class="col-12 col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm border-0">
                 {% if product.image_url %}
-                <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}" style="height: 240px; object-fit: cover;">
+                <img src="{{ product.image_url.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 240px; object-fit: cover;">
                 {% else %}
                 <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 240px;">
                     <span class="text-muted">Sin imagen</span>

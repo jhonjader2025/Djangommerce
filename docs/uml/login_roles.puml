@@ -1,0 +1,19 @@
+@startuml
+title Login y control por roles
+
+actor Usuario
+actor Admin
+rectangle "Djangommerce" {
+  usecase "Iniciar sesion" as U1
+  usecase "Registrar usuario" as U2
+  usecase "Crear usuario con rol" as U3
+  usecase "Acceder a panel admin" as U4
+}
+
+Usuario --> U1
+Usuario --> U2
+Admin --> U1
+Admin --> U3
+Admin --> U4
+
+@enduml

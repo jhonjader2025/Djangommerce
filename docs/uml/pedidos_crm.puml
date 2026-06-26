@@ -1,0 +1,17 @@
+@startuml
+title Flujo de pedido CRM
+
+start
+:Usuario autenticado;
+:Abre listado de pedidos;
+:Selecciona crear pedido;
+:Completa cliente, descripcion y monto;
+if (Monto > 0?) then (si)
+  :Guardar Order con canal CRM;
+  :Redirigir al listado;
+else (no)
+  :Mostrar error de validacion;
+endif
+stop
+
+@enduml

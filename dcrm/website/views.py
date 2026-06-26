@@ -69,35 +69,35 @@ def create_sample_products():
         {
             "name": "Camiseta Oversize Negra",
             "description": "Camiseta de algodon estilo urbano.",
-            "image_url": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab",
+            "image_url": "products/camiseta-oversize-negra.svg",
             "price": Decimal("24.90"),
             "stock": 40,
         },
         {
             "name": "Jeans Slim Azul",
             "description": "Jeans casual para uso diario.",
-            "image_url": "https://images.unsplash.com/photo-1541099649105-f69ad21f3246",
+            "image_url": "products/jeans-slim-azul.svg",
             "price": Decimal("39.50"),
             "stock": 30,
         },
         {
             "name": "Chaqueta Denim",
             "description": "Chaqueta de mezclilla unisex.",
-            "image_url": "https://images.unsplash.com/photo-1512436991641-6745cdb1723f",
+            "image_url": "products/chaqueta-denim.svg",
             "price": Decimal("59.00"),
             "stock": 20,
         },
         {
             "name": "Hoodie Gris",
             "description": "Buzo con capucha y forro suave.",
-            "image_url": "https://images.unsplash.com/photo-1618354691373-d851c5c3a990",
+            "image_url": "products/hoodie-gris.svg",
             "price": Decimal("44.00"),
             "stock": 35,
         },
         {
             "name": "Tenis Blancos Urban",
             "description": "Tenis ligeros para outfit casual.",
-            "image_url": "https://images.unsplash.com/photo-1542291026-7eec264c27ff",
+            "image_url": "products/tenis-blancos-urban.svg",
             "price": Decimal("68.00"),
             "stock": 25,
         },
@@ -133,6 +133,11 @@ def create_sample_products():
         product.stock = max(product.stock, new_data["stock"])
         product.is_active = True
         product.save()
+
+    for product in Product.objects.all():
+        if product.image_url and str(product.image_url).startswith("img/products/"):
+            product.image_url = str(product.image_url).replace("img/products/", "products/")
+            product.save(update_fields=["image_url"])
 
 
 def create_sample_records():

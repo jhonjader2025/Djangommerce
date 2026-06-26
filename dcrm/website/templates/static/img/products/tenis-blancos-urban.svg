@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" role="img" aria-label="Tenis blancos urban">
+  <rect width="600" height="800" rx="40" fill="#d9d9d9"/>
+  <path d="M120 530 C180 480, 240 470, 310 500 C350 515, 400 515, 480 490 L480 610 L120 610 Z" fill="#ffffff" stroke="#111" stroke-width="6"/>
+  <path d="M180 500 L230 430 L320 455 L360 520" fill="none" stroke="#111" stroke-width="10"/>
+  <path d="M205 470 L245 560" stroke="#111" stroke-width="8"/>
+  <path d="M260 460 L295 560" stroke="#111" stroke-width="8"/>
+  <text x="300" y="710" font-family="Arial, sans-serif" font-size="40" text-anchor="middle" fill="#111">Tenis</text>
+</svg>

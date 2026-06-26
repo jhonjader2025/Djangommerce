@@ -1,0 +1,54 @@
+@startuml
+title Modelo de clases de Djangommerce
+
+skinparam classAttributeIconSize 0
+
+class UserProfile {
+  +role: CharField
+}
+
+class Record {
+  +first_name: CharField
+  +last_name: CharField
+  +email: EmailField
+  +phone_number: CharField
+  +address: CharField
+  +city: CharField
+  +state: CharField
+  +zip_code: CharField
+}
+
+class Order {
+  +description: TextField
+  +total_amount: DecimalField
+  +status: CharField
+  +channel: CharField
+  +created_at: DateTimeField
+  +updated_at: DateTimeField
+}
+
+class Product {
+  +name: CharField
+  +description: TextField
+  +image_url: CharField
+  +price: DecimalField
+  +stock: PositiveIntegerField
+  +is_active: BooleanField
+}
+
+class ProductOrder {
+  +quantity: PositiveIntegerField
+  +unit_price: DecimalField
+  +total_amount: DecimalField
+  +status: CharField
+  +created_at: DateTimeField
+}
+
+UserProfile "1" -- "1" User : profile
+Record "1" <-- "*" Order : customer
+User "1" <-- "*" Order : assigned_seller
+User "1" <-- "*" Order : created_by
+User "1" <-- "*" ProductOrder : user
+Product "1" <-- "*" ProductOrder : product
+
+@enduml

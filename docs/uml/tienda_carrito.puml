@@ -1,0 +1,16 @@
+@startuml
+title Flujo de tienda y carrito
+
+start
+:Usuario abre tienda de ropa;
+:Agrega productos al carrito;
+:Revisa carrito;
+if (Confirma compra?) then (si)
+  :Crear Order con canal TIENDA;
+  :Vaciar carrito de sesion;
+else (no)
+  :Mantener carrito activo;
+endif
+stop
+
+@enduml

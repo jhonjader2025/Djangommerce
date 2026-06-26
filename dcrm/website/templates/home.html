@@ -63,6 +63,14 @@
         width: 100%;
         border-radius: 16px;
     }
+
+    .ui-icon {
+        width: 16px;
+        height: 16px;
+        display: inline-block;
+        vertical-align: -2px;
+        fill: currentColor;
+    }
 </style>
 
 {% if messages %}
@@ -70,7 +78,7 @@
     {% for message in messages %}
     <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0 row-brand" role="alert">
         <div class="d-flex align-items-center">
-            <span class="me-2">💡</span>
+            <svg class="ui-icon me-2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-4 12.7V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.3A7 7 0 0 0 12 2zm2 17h-4v-1h4v1zm0-3h-4v-1h4v1z"/></svg>
             <div>{{ message }}</div>
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -220,7 +228,9 @@
                     <div class="mb-3">
                         <label for="username" class="form-label text-secondary small fw-bold">Usuario *</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0 text-muted">👤</span>
+                            <span class="input-group-text bg-light border-end-0 text-muted">
+                                <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-4 0-8 2-8 4.5V21h16v-2.5C20 16 16 14 12 14z"/></svg>
+                            </span>
                             <input type="text" class="form-control border-start-0 bg-light" name="username" id="username" placeholder="Tu usuario de administrador" required>
                         </div>
                     </div>
@@ -229,8 +239,8 @@
                         <label for="password" class="form-label text-secondary small fw-bold">Contraseña *</label>
                         <div class="input-group">
                             <input type="password" class="form-control border-start-0 border-end-0 bg-light" id="password" name="password" placeholder="••••••••" required>
-                            <button class="btn btn-light border border-start-0 text-muted" type="button" id="togglePassword">
-                                👁️
+                            <button class="btn btn-light border border-start-0 text-muted d-inline-flex align-items-center justify-content-center" type="button" id="togglePassword" aria-label="Mostrar u ocultar contraseña">
+                                <svg class="ui-icon" id="togglePasswordIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c5.5 0 9.5 4.5 10 7-0.5 2.5-4.5 7-10 7S2.5 14.5 2 12c0.5-2.5 4.5-7 10-7zm0 2C8 7 4.7 10 4 12c0.7 2 4 5 8 5s7.3-3 8-5c-0.7-2-4-5-8-5zm0 2.5A2.5 2.5 0 1 1 12 14a2.5 2.5 0 0 1 0-5z"/></svg>
                             </button>
                         </div>
                     </div>
@@ -260,12 +270,13 @@
     // Conmutador para visibilidad de la contraseña en el login
     document.getElementById('togglePassword')?.addEventListener('click', function() {
         const passwordInput = document.getElementById('password');
+        const icon = document.getElementById('togglePasswordIcon');
         if (passwordInput.type === 'password') {
             passwordInput.type = 'text';
-            this.textContent = '🙈';
+            icon.innerHTML = '<path d="M2 4.3 3.3 3l17.7 17.7-1.3 1.3-3-3C14.7 19.6 13.4 20 12 20 6.5 20 2.5 15.5 2 13c0.4-1.8 2.1-4.4 4.7-6.3L2 4.3zm10 2.2c-1.2 0-2.3.3-3.3.8l1.4 1.4c.6-.3 1.2-.5 1.9-.5 2.2 0 4 1.8 4 4 0 .7-.2 1.3-.5 1.9l1.4 1.4c.5-1 .8-2.1.8-3.3 0-3.3-2.7-6-6-6zm0 4.2 3.3 3.3c-.3 1.1-1.2 1.9-2.3 2.2l-1-1a2.5 2.5 0 0 0 0-4.5z"/>';
         } else {
             passwordInput.type = 'password';
-            this.textContent = '👁️';
+            icon.innerHTML = '<path d="M12 5c5.5 0 9.5 4.5 10 7-0.5 2.5-4.5 7-10 7S2.5 14.5 2 12c0.5-2.5 4.5-7 10-7zm0 2C8 7 4.7 10 4 12c0.7 2 4 5 8 5s7.3-3 8-5c-0.7-2-4-5-8-5zm0 2.5A2.5 2.5 0 1 1 12 14a2.5 2.5 0 0 1 0-5z"/>';
         }
     });
 

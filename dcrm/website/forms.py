@@ -252,7 +252,7 @@ class OrderAdminForm(OrderForm):
 
 
 class ProductAdminForm(forms.ModelForm):
-    """Formulario para que admin cargue productos de ropa con imagen."""
+    """Formulario para que admin cargue productos de ropa con imagen local."""
 
     class Meta:
         model = Product
@@ -268,8 +268,8 @@ class ProductAdminForm(forms.ModelForm):
                     "placeholder": "Descripción corta de la prenda...",
                 }
             ),
-            "image_url": forms.URLInput(
-                attrs={"class": "form-control", "placeholder": "https://..."}
+                "image_url": forms.ClearableFileInput(
+                    attrs={"class": "form-control", "accept": "image/*"}
             ),
             "price": forms.NumberInput(
                 attrs={"class": "form-control", "step": "0.01", "placeholder": "0.00"}

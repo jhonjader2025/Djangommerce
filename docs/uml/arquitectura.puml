@@ -1,0 +1,24 @@
+@startuml
+title Arquitectura general de Djangommerce
+skinparam componentStyle rectangle
+
+actor Usuario
+actor Admin
+
+component "Browser" as Browser
+component "Django Views" as Views
+component "Forms" as Forms
+component "Models" as Models
+component "MySQL" as DB
+component "Templates" as Templates
+
+Usuario --> Browser
+Admin --> Browser
+Browser --> Views
+Views --> Forms
+Views --> Models
+Views --> Templates
+Models --> DB
+Templates --> Browser
+
+@enduml

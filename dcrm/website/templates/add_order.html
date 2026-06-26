@@ -1,13 +1,25 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+    .ui-icon {
+        width: 16px;
+        height: 16px;
+        display: inline-block;
+        vertical-align: -2px;
+        fill: currentColor;
+    }
+</style>
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
             
             <div class="card shadow">
                 <div class="card-header bg-dark text-white text-center">
-                    <h4 class="mb-0">{% if is_edit_mode %}🛠️ Editar Pedido CRM{% else %}📦 Registrar Nuevo Pedido{% endif %}</h4>
+                    <h4 class="mb-0 d-inline-flex align-items-center gap-2">
+                        <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v2H3V5zm2 4h14v10H5V9zm2 2v6h10v-6H7z"/></svg>
+                        <span>{% if is_edit_mode %}Editar Pedido CRM{% else %}Registrar Nuevo Pedido{% endif %}</span>
+                    </h4>
                 </div>
                 <div class="card-body p-4">
                     
@@ -32,10 +44,12 @@
 
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'list_orders' %}" class="btn btn-secondary">
-                                <i class="fa fa-arrow-left"></i> Volver
+                                <svg class="ui-icon me-1" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 19 3 12l7-7 1.4 1.4L6.8 11H21v2H6.8l4.6 4.6L10 19z"/></svg>
+                                Volver
                             </a>
                             <button type="submit" class="btn btn-success">
-                                <i class="fa fa-save"></i> {% if is_edit_mode %}Guardar Cambios{% else %}Guardar Pedido{% endif %}
+                                <svg class="ui-icon me-1" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l3 3v15H5V3zm2 2v14h10V7.5L15.5 5H7zm1 2h6v4H8V7z"/></svg>
+                                {% if is_edit_mode %}Guardar Cambios{% else %}Guardar Pedido{% endif %}
                             </button>
                         </div>
 

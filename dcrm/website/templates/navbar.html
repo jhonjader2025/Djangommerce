@@ -32,6 +32,14 @@
     gap: 6px;
   }
 
+  .nav-icon {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    vertical-align: -2px;
+    fill: currentColor;
+  }
+
   .nav-link-tech:hover {
     color: #111111 !important;
     background: #f3f4f6;
@@ -56,7 +64,7 @@
 <nav class="navbar navbar-expand-lg navbar-light custom-navbar sticky-top">
   <div class="container-fluid">
     <a class="navbar-brand navbar-brand-tech" href="{% url 'home' %}">
-      ⚡ Django CRM
+      D'Gala
     </a>
 
     <button class="navbar-toggler navbar-toggler-tech" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -73,48 +81,56 @@
           </li>
           <li class="nav-item">
             <a class="nav-link nav-link-tech" href="{% url 'list_orders' %}">
-              <span>Pedidos</span> 
+              <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v2H7V4zm0 4h10v2H7V8zm0 4h7v2H7v-2zM5 2h14a2 2 0 0 1 2 2v16l-4-3-4 3-4-3-4 3V4a2 2 0 0 1 2-2z"/></svg>
+              <span>Pedidos</span>
             </a>
           </li>
 
           <li class="nav-item">
             <a class="nav-link nav-link-tech" href="{% url 'store_home' %}">
-              <span>Tienda</span> 
+              <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V8a5 5 0 0 1 10 0v2h2v12H5V10h2zm2 0h6V8a3 3 0 0 0-6 0v2zm-2 2v8h10v-8H7z"/></svg>
+              <span>Tienda</span>
             </a>
           </li>
 
           {% if user_role == 'admin' %}
           <li class="nav-item">
             <a class="nav-link nav-link-tech" href="{% url 'admin_orders_dashboard' %}">
-              <span>Panel Admin</span> 
+              <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13h6v8H3v-8zm12-10h6v18h-6V3zM10 7h4v14h-4V7z"/></svg>
+              <span>Panel Admin</span>
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link nav-link-tech" href="{% url 'admin_manage_products' %}">
+              <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l3 4-3 2v12H9V9L6 7l3-4zm1 2-1.2 1.6L10 7l2 1 2-1-.8-.4L12 5l-2 0z"/></svg>
               <span>Productos Ropa</span>
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link nav-link-tech" href="{% url 'admin_create_user' %}">
-              <span>Crear Usuario</span> 👥
+              <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-4.4 0-8 2-8 4.5V21h16v-2.5C20 16 16.4 14 12 14zm7-7V5h-2V3h-2v2h-2v2h2v2h2V7h2z"/></svg>
+              <span>Crear Usuario</span>
             </a>
           </li>
           {% endif %}
 
           <li class="nav-item">
             <a class="nav-link nav-link-tech nav-link-danger-tech" href="{% url 'logout' %}">
-              <span>Cerrar Usuario</span> ❌
+              <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17v-2h4v2h-4zm-2-7h8V8l4 4-4 4v-2H8v-4zm9-8H7a2 2 0 0 0-2 2v4h2V4h10v16H7v-4H5v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>
+              <span>Cerrar Sesión</span>
             </a>
           </li>
         {% else %}
           <li class="nav-item">
             <a class="nav-link nav-link-tech" href="{% url 'register' %}">
-              <span>Registrar</span> 
+              <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-4 0-7 1.8-7 4v2h14v-2c0-2.2-3-4-7-4zm7-6h-2V6h-2V4h2V2h2v2h2v2h-2v2z"/></svg>
+              <span>Registrar</span>
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link nav-link-tech" href="{% url 'home' %}">
-              <span>Iniciar Sesión</span> 
+              <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17v-2h4v2h-4zm-2-7h8V8l4 4-4 4v-2H8v-4zm9-8H7a2 2 0 0 0-2 2v4h2V4h10v16H7v-4H5v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>
+              <span>Iniciar Sesión</span>
             </a>
           </li>
         {% endif %}
